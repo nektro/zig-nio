@@ -1,0 +1,8 @@
+id: kscsl0145t7xr8hexmuywgbe866k7zastpkzacp8srabdvps
+name: nio
+main: nio.zig
+license: MPL-2.0
+description: Nektro's IO, an alternative to std.io
+min_zig_version: 0.14.0
+min_zigmod_version: r96
+dependencies:
