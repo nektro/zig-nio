@@ -42,3 +42,5 @@ pub fn Readable(T: type) type {
 }
 
 pub const AnyReadable = @import("./AnyReadable.zig");
+
+pub const FixedBufferStream = @import("./fixed_buffer_stream.zig").FixedBufferStream;
