@@ -7,3 +7,5 @@
 [![Zigmod](https://img.shields.io/badge/Zigmod-latest-f7a41d)](https://github.com/nektro/zigmod)
 
 Nektro's IO, an alternative to `std.io`.
+
+Some code ported from Zig 0.14.1, via MIT Copyright (c) Zig contributors. New code MPL-2.0.
