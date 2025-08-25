@@ -11,4 +11,4 @@ pub fn read(r: *AnyReadable, buffer: []u8) !usize {
 }
 
 pub const ReadError = anyerror;
-pub usingnamespace nio.Readable(@This());
+pub usingnamespace nio.Readable(@This(), ._var);

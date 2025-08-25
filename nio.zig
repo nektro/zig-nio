@@ -1,19 +1,25 @@
 const std = @import("std");
 
-pub fn Readable(T: type) type {
+pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
     return struct {
         const Error = T.ReadError;
+
+        const Self = switch (this_kind) {
+            ._var => *T,
+            ._const => *const T,
+            ._bare => T,
+        };
 
         /// Returns the number of bytes read. It may be less than buffer.len.
         /// If the number of bytes read is 0, it means end of stream.
         /// End of stream is not an error condition.
-        // pub fn read(self: *T, buffer: []u8) Error!usize {
+        // pub fn read(self: Self, buffer: []u8) Error!usize {
         // }
 
         /// Returns the number of bytes read. If the number read is smaller than `buffer.len`, it
         /// means the stream reached the end. Reaching the end of a stream is not an error
         /// condition.
-        pub fn readAll(self: *T, buffer: []u8) Error!usize {
+        pub fn readAll(self: Self, buffer: []u8) Error!usize {
             return self.readAtLeast(buffer, buffer.len);
         }
 
@@ -22,7 +28,7 @@ pub fn Readable(T: type) type {
         /// `len` bytes filled. If the number read is less than `len` it means
         /// the stream reached the end. Reaching the end of the stream is not
         /// an error condition.
-        pub fn readAtLeast(self: *T, buffer: []u8, len: usize) Error!usize {
+        pub fn readAtLeast(self: Self, buffer: []u8, len: usize) Error!usize {
             std.debug.assert(len <= buffer.len);
             var index: usize = 0;
             while (index < len) {
@@ -34,7 +40,7 @@ pub fn Readable(T: type) type {
         }
 
         /// If the number read would be smaller than `buf.len`, `error.EndOfStream` is returned instead.
-        pub fn readNoEof(self: *T, buf: []u8) (Error || error{EndOfStream})!void {
+        pub fn readNoEof(self: Self, buf: []u8) (Error || error{EndOfStream})!void {
             const amt_read = try self.readAll(buf);
             if (amt_read < buf.len) return error.EndOfStream;
         }

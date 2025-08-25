@@ -18,7 +18,7 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
         }
 
         pub const ReadError = error{};
-        pub usingnamespace nio.Readable(@This());
+        pub usingnamespace nio.Readable(@This(), ._var);
         pub fn read(self: *Self, dest: []u8) ReadError!usize {
             const size = @min(dest.len, self.buffer.len - self.pos);
             const end = self.pos + size;
