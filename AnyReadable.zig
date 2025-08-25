@@ -3,8 +3,8 @@ const std = @import("std");
 const nio = @import("./nio.zig");
 const AnyReadable = @This();
 
-readFn: *const fn (*anyopaque, []u8) anyerror!usize,
-state: *anyopaque,
+readFn: *const fn (*allowzero anyopaque, []u8) anyerror!usize,
+state: *allowzero anyopaque,
 
 pub fn read(r: *AnyReadable, buffer: []u8) !usize {
     return r.readFn(r.state, buffer);
