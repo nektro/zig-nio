@@ -3,12 +3,12 @@ const std = @import("std");
 const nio = @import("./nio.zig");
 const AnyReadable = @This();
 
-readFn: *const fn (*allowzero anyopaque, []u8) anyerror!usize,
+vtable: *const struct {
+},
 state: *allowzero anyopaque,
-
-pub fn read(r: *AnyReadable, buffer: []u8) !usize {
-    return r.readFn(r.state, buffer);
-}
 
 pub const ReadError = anyerror;
 pub usingnamespace nio.Readable(@This(), ._var);
+pub fn read(r: *AnyReadable, buffer: []u8) !usize {
+    return r.vtable.read(r.state, buffer);
+}

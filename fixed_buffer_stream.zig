@@ -29,13 +29,15 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
 
         pub fn anyReadable(self: *Self) nio.AnyReadable {
             const S = struct {
-                fn foo(s: *allowzero anyopaque, buffer: []u8) anyerror!usize {
+                fn read(s: *allowzero anyopaque, buffer: []u8) anyerror!usize {
                     const fbs: *Self = @ptrCast(@alignCast(s));
                     return fbs.read(buffer);
                 }
             };
             return .{
-                .readFn = S.foo,
+                .vtable = &.{
+                    .read = S.read,
+                },
                 .state = @ptrCast(self),
             };
         }
