@@ -4,6 +4,7 @@ const nio = @import("./nio.zig");
 const AnyReadable = @This();
 
 vtable: *const struct {
+    read: *const fn (*allowzero anyopaque, []u8) anyerror!usize,
 },
 state: *allowzero anyopaque,
 
