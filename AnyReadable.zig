@@ -13,3 +13,6 @@ pub usingnamespace nio.Readable(@This(), ._var);
 pub fn read(r: *AnyReadable, buffer: []u8) !usize {
     return r.vtable.read(r.state, buffer);
 }
+pub fn anyReadable(r: AnyReadable) AnyReadable {
+    return r;
+}
