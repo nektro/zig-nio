@@ -35,9 +35,7 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
                 }
             };
             return .{
-                .vtable = &.{
-                    .read = S.read,
-                },
+                .vtable = &.{ .read = S.read },
                 .state = @ptrCast(self),
             };
         }
