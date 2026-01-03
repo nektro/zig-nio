@@ -89,6 +89,51 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
     };
 }
 
+pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
+    return struct {
+        const Error = T.WriteError;
+
+        const Self = switch (this_kind) {
+            ._var => *T,
+            ._const => *const T,
+            ._bare => T,
+        };
+
+        // pub fn write(self: Self, bytes: []const u8) Error!usize {
+        // }
+
+        pub fn writeAll(self: Self, bytes: []const u8) Error!void {
+            var index: usize = 0;
+            while (index != bytes.len) {
+                index += try self.write(bytes[index..]);
+            }
+        }
+
+        pub fn writeByteNTimes(self: Self, byte: u8, n: usize) Error!void {
+            var bytes: [1024]u8 = undefined;
+            @memset(bytes[0..], byte);
+            var remaining: usize = n;
+            while (remaining > 0) {
+                const to_write = @min(remaining, bytes.len);
+                try self.writeAll(bytes[0..to_write]);
+                remaining -= to_write;
+            }
+        }
+
+        pub fn writeInt(self: Self, comptime I: type, value: I, endian: std.builtin.Endian) Error!void {
+            var bytes: [@as(u16, @intCast((@as(u17, @typeInfo(I).Int.bits) + 7) / 8))]u8 = undefined;
+            std.mem.writeInt(std.math.ByteAlignedInt(I), &bytes, value, endian);
+            return self.writeAll(&bytes);
+        }
+
+        pub fn writeStruct(self: Self, value: anytype) Error!void {
+            // Only extern and packed structs have defined in-memory layout.
+            comptime std.debug.assert(@typeInfo(@TypeOf(value)).Struct.layout != .Auto);
+            return self.writeAll(std.mem.asBytes(&value));
+        }
+    };
+}
+
 pub const AnyReadable = @import("./AnyReadable.zig");
 
 pub const FixedBufferStream = @import("./fixed_buffer_stream.zig").FixedBufferStream;
