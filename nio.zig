@@ -136,4 +136,6 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
 
 pub const AnyReadable = @import("./AnyReadable.zig");
 
+pub const AnyWritable = @import("./AnyWritable.zig");
+
 pub const FixedBufferStream = @import("./fixed_buffer_stream.zig").FixedBufferStream;
