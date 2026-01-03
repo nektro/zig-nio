@@ -39,5 +39,32 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
                 .state = @ptrCast(self),
             };
         }
+
+        pub const WriteError = error{NoSpaceLeft};
+        pub usingnamespace nio.Writable(@This(), ._var);
+        /// If the returned number of bytes written is less than requested, the buffer is full.
+        /// Returns `error.NoSpaceLeft` when no bytes would be written.
+        pub fn write(self: *Self, bytes: []const u8) WriteError!usize {
+            if (bytes.len == 0) return 0;
+            if (self.pos >= self.buffer.len) return error.NoSpaceLeft;
+            const n = @min(self.buffer.len - self.pos, bytes.len);
+            @memcpy(self.buffer[self.pos..][0..n], bytes[0..n]);
+            self.pos += n;
+            if (n == 0) return error.NoSpaceLeft;
+            return n;
+        }
+
+        pub fn anyWritable(self: *Self) nio.AnyWritable {
+            const S = struct {
+                fn write(s: *allowzero anyopaque, buffer: []u8) anyerror!usize {
+                    const fbs: *Self = @ptrCast(@alignCast(s));
+                    return fbs.write(buffer);
+                }
+            };
+            return .{
+                .vtable = &.{ .write = S.write },
+                .state = @ptrCast(self),
+            };
+        }
     };
 }
