@@ -20,7 +20,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
         /// means the stream reached the end. Reaching the end of a stream is not an error
         /// condition.
         pub fn readAll(self: Self, buffer: []u8) Error!usize {
-            return self.readAtLeast(buffer, buffer.len);
+            return readAtLeast(self, buffer, buffer.len);
         }
 
         /// Returns the number of bytes read, calling the underlying read
@@ -41,14 +41,14 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
 
         /// If the number read would be smaller than `buf.len`, `error.EndOfStream` is returned instead.
         pub fn readNoEof(self: Self, buf: []u8) (Error || error{EndOfStream})!void {
-            const amt_read = try self.readAll(buf);
+            const amt_read = try readAll(self, buf);
             if (amt_read < buf.len) return error.EndOfStream;
         }
 
         /// Appends to the `std.ArrayList` contents by reading from the stream until end of stream is found.
         /// If the number of bytes appended would exceed `max_append_size`, `error.StreamTooLong` is returned and the `std.ArrayList` has exactly `max_append_size` bytes appended.
         fn readAllArrayList(self: Self, array_list: *std.ArrayList(u8), max_append_size: usize) !void {
-            return self.readAllArrayListAligned(null, array_list, max_append_size);
+            return readAllArrayListAligned(self, null, array_list, max_append_size);
         }
 
         fn readAllArrayListAligned(self: Self, comptime alignment: ?u29, array_list: *std.ArrayListAligned(u8, alignment), max_append_size: usize) !void {
@@ -58,7 +58,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             while (true) {
                 array_list.expandToCapacity();
                 const dest_slice = array_list.items[start_index..];
-                const bytes_read = try self.readAll(dest_slice);
+                const bytes_read = try readAll(self, dest_slice);
                 start_index += bytes_read;
 
                 if (start_index - original_len > max_append_size) {
@@ -83,7 +83,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
         pub fn readAllAlloc(self: Self, allocator: std.mem.Allocator, max_size: usize) ![]u8 {
             var array_list = std.ArrayList(u8).init(allocator);
             defer array_list.deinit();
-            try self.readAllArrayList(&array_list, max_size);
+            try readAllArrayList(self, &array_list, max_size);
             return try array_list.toOwnedSlice();
         }
     };
@@ -115,7 +115,7 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             var remaining: usize = n;
             while (remaining > 0) {
                 const to_write = @min(remaining, bytes.len);
-                try self.writeAll(bytes[0..to_write]);
+                try writeAll(self, bytes[0..to_write]);
                 remaining -= to_write;
             }
         }
@@ -123,13 +123,13 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
         pub fn writeInt(self: Self, comptime I: type, value: I, endian: std.builtin.Endian) Error!void {
             var bytes: [@as(u16, @intCast((@as(u17, @typeInfo(I).Int.bits) + 7) / 8))]u8 = undefined;
             std.mem.writeInt(std.math.ByteAlignedInt(I), &bytes, value, endian);
-            return self.writeAll(&bytes);
+            return writeAll(self, &bytes);
         }
 
         pub fn writeStruct(self: Self, value: anytype) Error!void {
             // Only extern and packed structs have defined in-memory layout.
             comptime std.debug.assert(@typeInfo(@TypeOf(value)).Struct.layout != .Auto);
-            return self.writeAll(std.mem.asBytes(&value));
+            return writeAll(self, std.mem.asBytes(&value));
         }
     };
 }
