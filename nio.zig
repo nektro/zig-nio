@@ -86,6 +86,35 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             try readAllArrayList(self, &array_list, max_size);
             return try array_list.toOwnedSlice();
         }
+
+        pub fn readArray(self: Self, comptime N: usize) ![N]u8 {
+            var buffer: [N]u8 = undefined;
+            if (try readAll(self, &buffer) != N) return error.EndOfStream;
+            return buffer;
+        }
+
+        pub fn readByte(self: Self) !u8 {
+            return (try readArray(self, 1))[0];
+        }
+
+        pub fn readUntilDelimitersBuf(self: Self, buffer: []u8, needle: []const u8) ![]u8 {
+            var real_len: usize = 0;
+            for (0..buffer.len) |_| {
+                buffer[real_len] = try readByte(self);
+                real_len += 1;
+                if (real_len < needle.len) continue;
+                if (std.mem.endsWith(u8, buffer[0..real_len], needle)) return buffer[0 .. real_len - needle.len];
+            }
+            return error.StreamTooLong;
+        }
+
+        pub fn readUntilDelimitersArrayList(self: Self, array_list: *std.ArrayList(u8), needle: []const u8, max_size: usize) !usize {
+            for (0..max_size) |i| {
+                try array_list.append(try readByte(self));
+                if (std.mem.endsWith(u8, array_list.items, needle)) return i + 1 - needle.len;
+            }
+            return error.StreamTooLong;
+        }
     };
 }
 
