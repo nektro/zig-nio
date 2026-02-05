@@ -108,10 +108,11 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return error.StreamTooLong;
         }
 
-        pub fn readUntilDelimitersArrayList(self: Self, array_list: *std.ArrayList(u8), needle: []const u8, max_size: usize) !usize {
+        pub fn readUntilDelimitersArrayList(self: Self, array_list: *std.ArrayList(u8), needle: []const u8, max_size: usize) ![]u8 {
+            const initial_len = array_list.items.len;
             for (0..max_size) |i| {
                 try array_list.append(try readByte(self));
-                if (std.mem.endsWith(u8, array_list.items, needle)) return i + 1 - needle.len;
+                if (std.mem.endsWith(u8, array_list.items, needle)) return array_list.items[initial_len..][0 .. i + 1 - needle.len];
             }
             return error.StreamTooLong;
         }
