@@ -139,3 +139,5 @@ pub const AnyReadable = @import("./AnyReadable.zig");
 pub const AnyWritable = @import("./AnyWritable.zig");
 
 pub const FixedBufferStream = @import("./fixed_buffer_stream.zig").FixedBufferStream;
+
+pub const BufferedReader = @import("./buffered_reader.zig").BufferedReader;
