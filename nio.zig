@@ -1,4 +1,12 @@
 const std = @import("std");
+const builtin = @import("builtin");
+const extras = @import("extras");
+const sys_linux = @import("sys-linux");
+
+const sys = switch (builtin.target.os.tag) {
+    .linux => sys_linux,
+    else => unreachable,
+};
 
 pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
     return struct {
@@ -132,10 +140,45 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
         // pub fn write(self: Self, bytes: []const u8) Error!usize {
         // }
 
+        // pub fn writev(self: Self, iovec: []const sys.struct_iovec) Error!usize {
+        // }
+
         pub fn writeAll(self: Self, bytes: []const u8) Error!void {
             var index: usize = 0;
             while (index != bytes.len) {
                 index += try self.write(bytes[index..]);
+            }
+        }
+
+        pub fn writevAll(self: Self, bytes: []const []const u8) Error!void {
+            var iovec: [1024]sys.struct_iovec = undefined;
+            for (bytes, 0..) |slice, i| iovec[i] = .{ .base = @constCast(slice.ptr), .len = slice.len };
+            var left: usize = 0;
+            for (bytes) |item| left += item.len;
+
+            while (left > 0) {
+                var written: usize = try self.writev(&iovec);
+                left -= written;
+                for (iovec[0..bytes.len], 0..) |vec, i| {
+                    switch (std.math.order(written, vec.len)) {
+                        .gt => {
+                            written -= iovec[i].len;
+                            iovec[i].len = 0;
+                            continue;
+                        },
+                        .eq => {
+                            written -= iovec[i].len;
+                            iovec[i].len = 0;
+                            break;
+                        },
+                        .lt => {
+                            iovec[i].base += written;
+                            iovec[i].len -= written;
+                            written -= written;
+                        },
+                    }
+                }
+                std.debug.assert(written == 0);
             }
         }
 
@@ -146,6 +189,16 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             while (remaining > 0) {
                 const to_write = @min(remaining, bytes.len);
                 try writeAll(self, bytes[0..to_write]);
+                remaining -= to_write;
+            }
+        }
+
+        pub fn writeNTimes(self: Self, input: []const u8, n: usize) Error!void {
+            var bytes: [1024][]const u8 = @splat(input);
+            var remaining: usize = n;
+            while (remaining > 0) {
+                const to_write = @min(remaining, bytes.len);
+                try writevAll(self, bytes[0..n]);
                 remaining -= to_write;
             }
         }

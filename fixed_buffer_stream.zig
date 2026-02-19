@@ -1,4 +1,12 @@
 const std = @import("std");
+const builtin = @import("builtin");
+const extras = @import("extras");
+const sys_linux = @import("sys-linux");
+
+const sys = switch (builtin.target.os.tag) {
+    .linux => sys_linux,
+    else => unreachable,
+};
 
 const nio = @import("./nio.zig");
 
@@ -52,6 +60,15 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
             self.pos += n;
             if (n == 0) return error.NoSpaceLeft;
             return n;
+        }
+        pub fn writev(self: *Self, iovec: []const sys.struct_iovec) WriteError!usize {
+            var count: usize = 0;
+            for (iovec) |vec| {
+                const actual = try write(self, vec.base[0..vec.len]);
+                count += actual;
+                if (actual < vec.len) break;
+            }
+            return count;
         }
 
         pub fn anyWritable(self: *Self) nio.AnyWritable {
