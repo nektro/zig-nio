@@ -157,7 +157,7 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             for (bytes) |item| left += item.len;
 
             while (left > 0) {
-                var written: usize = try self.writev(&iovec);
+                var written: usize = try self.writev(iovec[0..bytes.len]);
                 left -= written;
                 for (iovec[0..bytes.len], 0..) |vec, i| {
                     switch (std.math.order(written, vec.len)) {
