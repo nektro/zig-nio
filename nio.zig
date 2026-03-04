@@ -214,6 +214,63 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             comptime std.debug.assert(@typeInfo(@TypeOf(value)).Struct.layout != .Auto);
             return writeAll(self, std.mem.asBytes(&value));
         }
+
+        pub fn writeIntPretty(self: Self, value: anytype, base: u8, case: std.fmt.Case) !void {
+            std.debug.assert(base >= 2);
+
+            const int_value = if (@TypeOf(value) == comptime_int) @as(std.math.IntFittingRange(value, value), value) else value;
+            const value_info = @typeInfo(@TypeOf(int_value)).int;
+
+            // The type must have the same size as `base` or be wider in order for the division to work
+            const min_int_bits = comptime @max(value_info.bits, 8);
+            const MinInt = std.meta.Int(.unsigned, min_int_bits);
+
+            const abs_value = @abs(int_value);
+            // The worst case in terms of space needed is base 2, plus 1 for the sign
+            var buf: [1 + @max(@as(comptime_int, value_info.bits), 1)]u8 = undefined;
+
+            var a: MinInt = abs_value;
+            var index: usize = buf.len;
+
+            if (base == 10) {
+                while (a >= 100) : (a = @divTrunc(a, 100)) {
+                    index -= 2;
+                    buf[index..][0..2].* = std.fmt.digits2(@intCast(a % 100));
+                }
+                if (a < 10) {
+                    index -= 1;
+                    buf[index] = '0' + @as(u8, @intCast(a));
+                } else {
+                    index -= 2;
+                    buf[index..][0..2].* = std.fmt.digits2(@intCast(a));
+                }
+            } else {
+                while (true) {
+                    const digit = a % base;
+                    index -= 1;
+                    buf[index] = std.fmt.digitToChar(@intCast(digit), case);
+                    a /= base;
+                    if (a == 0) break;
+                }
+            }
+
+            if (value_info.signedness == .signed) {
+                if (value < 0) {
+                    // Negative integer
+                    index -= 1;
+                    buf[index] = '-';
+                } else if (true) {
+                    // Positive integer, omit the plus sign
+                    // if (options.width == null or options.width.? == 0)
+                } else {
+                    // Positive integer
+                    index -= 1;
+                    buf[index] = '+';
+                }
+            }
+
+            return writeAll(self, buf[index..]);
+        }
     };
 }
 
