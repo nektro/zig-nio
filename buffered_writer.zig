@@ -1,5 +1,12 @@
 const std = @import("std");
 const nio = @import("./nio.zig");
+const builtin = @import("builtin");
+const sys_linux = @import("sys-linux");
+
+const sys = switch (builtin.target.os.tag) {
+    .linux => sys_linux,
+    else => unreachable,
+};
 
 pub fn BufferedWriter(comptime buffer_size: usize, comptime WriterType: type) type {
     return struct {
@@ -28,6 +35,15 @@ pub fn BufferedWriter(comptime buffer_size: usize, comptime WriterType: type) ty
             @memcpy(self.buf[self.end..new_end], bytes);
             self.end = new_end;
             return bytes.len;
+        }
+        pub fn writev(self: *Self, iovec: []const sys.struct_iovec) WriteError!usize {
+            var total: usize = 0;
+            for (iovec) |vec| {
+                const len = try write(self, vec.base[0..vec.len]);
+                total += len;
+                if (len != vec.len) break;
+            }
+            return total;
         }
 
         pub fn anyWritable(self: *Self) nio.AnyWritable {
