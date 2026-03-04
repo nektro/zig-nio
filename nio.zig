@@ -137,10 +137,10 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             ._bare => T,
         };
 
-        // pub fn write(self: Self, bytes: []const u8) Error!usize {
+        // pub fn write(self: Self, bytes: []const u8) WriteError!usize {
         // }
 
-        // pub fn writev(self: Self, iovec: []const sys.struct_iovec) Error!usize {
+        // pub fn writev(self: Self, iovec: []const sys.struct_iovec) WriteError!usize {
         // }
 
         pub fn writeAll(self: Self, bytes: []const u8) Error!void {
