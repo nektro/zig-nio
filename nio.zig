@@ -289,3 +289,5 @@ pub const FixedBufferStream = @import("./fixed_buffer_stream.zig").FixedBufferSt
 pub const BufferedReader = @import("./buffered_reader.zig").BufferedReader;
 
 pub const BufferedWriter = @import("./buffered_writer.zig").BufferedWriter;
+
+pub const CountingWriter = @import("./counting_writer.zig").CountingWriter;
