@@ -854,8 +854,8 @@ const digits2_alphabet = blk: {
     var data: [200]u8 = @splat(0);
     for (0..10) |m| {
         for (0..10) |n| {
-            data[m * 10 + n + 0] = m + '0';
-            data[m * 10 + n + 1] = n + '0';
+            data[(m * 10 + n) * 2 + 0] = m + '0';
+            data[(m * 10 + n) * 2 + 1] = n + '0';
         }
     }
     const result = data;
