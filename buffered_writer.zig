@@ -1,6 +1,7 @@
 const std = @import("std");
 const nio = @import("./nio.zig");
 const builtin = @import("builtin");
+const extras = @import("extras");
 const sys_linux = @import("sys-linux");
 
 const sys = switch (builtin.target.os.tag) {
@@ -24,7 +25,7 @@ pub fn BufferedWriter(comptime buffer_size: usize, comptime WriterType: type) ty
             };
         }
 
-        pub const WriteError = WriterType.WriteError;
+        pub const WriteError = extras.Pointee(WriterType).WriteError;
         pub usingnamespace nio.Writable(@This(), ._var);
         pub fn write(self: *Self, bytes: []const u8) WriteError!usize {
             if (self.end + bytes.len > self.buf.len) {
