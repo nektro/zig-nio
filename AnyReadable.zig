@@ -8,6 +8,7 @@ vtable: *const struct {
 },
 state: *allowzero anyopaque,
 
+pub const Error = ReadError; // std compat
 pub const ReadError = anyerror;
 pub usingnamespace nio.Readable(@This(), ._var);
 pub fn read(r: *AnyReadable, buffer: []u8) !usize {
