@@ -3,6 +3,8 @@ const builtin = @import("builtin");
 const extras = @import("extras");
 const sys_linux = @import("sys-linux");
 
+pub const fmt = @import("./fmt.zig");
+
 const sys = switch (builtin.target.os.tag) {
     .linux => sys_linux,
     else => unreachable,
@@ -270,6 +272,10 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             }
 
             return writeAll(self, buf[index..]);
+        }
+
+        pub fn print(self: Self, comptime format: []const u8, args: anytype) Error!void {
+            return fmt.format(self, format, args);
         }
     };
 }
