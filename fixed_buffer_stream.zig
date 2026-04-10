@@ -83,5 +83,14 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
                 .state = @ptrCast(self),
             };
         }
+
+        pub fn takeByte(self: *Self) u8 {
+            defer self.pos += 1;
+            return self.buffer[self.pos];
+        }
+
+        pub fn rest(self: *Self) Buffer {
+            return self.buffer[self.pos..];
+        }
     };
 }
