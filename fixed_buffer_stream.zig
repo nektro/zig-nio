@@ -89,6 +89,11 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
             return self.buffer[self.pos];
         }
 
+        pub fn takeSlice(self: *Self, count: usize) Buffer {
+            defer self.pos += count;
+            return self.buffer[self.pos..][0..count];
+        }
+
         pub fn rest(self: *Self) Buffer {
             return self.buffer[self.pos..];
         }
