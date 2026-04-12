@@ -49,7 +49,7 @@ pub fn BufferedWriter(comptime buffer_size: usize, comptime WriterType: type) ty
 
         pub fn anyWritable(self: *Self) nio.AnyWritable {
             const S = struct {
-                fn write(s: *allowzero anyopaque, buffer: []u8) anyerror!usize {
+                fn write(s: *allowzero anyopaque, buffer: []const u8) anyerror!usize {
                     const bw: *Self = @ptrCast(@alignCast(s));
                     return bw.write(buffer);
                 }
