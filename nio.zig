@@ -126,6 +126,16 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             }
             return error.StreamTooLong;
         }
+
+        pub fn readAlloc(self: Self, allocator: std.mem.Allocator, size: usize) ![]u8 {
+            var array_list = try std.ArrayList(u8).initCapacity(allocator, size);
+            defer array_list.deinit();
+            try array_list.ensureUnusedCapacity(size);
+            const len = try readAll(self, array_list.allocatedSlice());
+            array_list.items.len += len;
+            if (len != size) return error.EndOfStream;
+            return array_list.toOwnedSlice();
+        }
     };
 }
 
