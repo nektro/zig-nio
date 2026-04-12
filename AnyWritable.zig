@@ -1,4 +1,11 @@
 const std = @import("std");
+const builtin = @import("builtin");
+const sys_linux = @import("sys-linux");
+
+const sys = switch (builtin.target.os.tag) {
+    .linux => sys_linux,
+    else => unreachable,
+};
 
 const nio = @import("./nio.zig");
 const AnyWritable = @This();
@@ -12,6 +19,15 @@ pub const WriteError = anyerror;
 pub usingnamespace nio.Writable(@This(), ._const);
 pub fn write(r: AnyWritable, buffer: []const u8) !usize {
     return r.vtable.write(r.state, buffer);
+}
+pub fn writev(w: AnyWritable, iovec: []const sys.struct_iovec) WriteError!usize {
+    var total: usize = 0;
+    for (iovec) |vec| {
+        const len = try write(w, vec.base[0..vec.len]);
+        total += len;
+        if (len != vec.len) break;
+    }
+    return total;
 }
 pub fn anyWritable(r: AnyWritable) AnyWritable {
     return r;
