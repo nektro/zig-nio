@@ -9,8 +9,8 @@ vtable: *const struct {
 state: *allowzero anyopaque,
 
 pub const WriteError = anyerror;
-pub usingnamespace nio.Writable(@This(), ._var);
-pub fn write(r: *AnyWritable, buffer: []u8) !usize {
+pub usingnamespace nio.Writable(@This(), ._const);
+pub fn write(r: AnyWritable, buffer: []const u8) !usize {
     return r.vtable.write(r.state, buffer);
 }
 pub fn anyWritable(r: AnyWritable) AnyWritable {
