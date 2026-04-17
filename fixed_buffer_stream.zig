@@ -16,6 +16,8 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
         buffer: Buffer,
         pos: usize,
 
+        const is_const = Buffer == []const u8;
+
         const Self = @This();
 
         pub fn init(buffer: Buffer) Self {
@@ -84,18 +86,28 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
             };
         }
 
-        pub fn takeByte(self: *Self) u8 {
-            defer self.pos += 1;
-            return self.buffer[self.pos];
+        pub fn rest(self: *Self) Buffer {
+            return self.buffer[self.pos..];
+        }
+
+        pub fn takeArray(self: *Self, comptime len: usize) (if (is_const) *const [len]u8 else *[len]u8) {
+            defer self.pos += len;
+            return self.rest()[0..len];
         }
 
         pub fn takeSlice(self: *Self, count: usize) Buffer {
             defer self.pos += count;
-            return self.buffer[self.pos..][0..count];
+            return self.rest()[0..count];
         }
 
-        pub fn rest(self: *Self) Buffer {
-            return self.buffer[self.pos..];
+        pub fn takeInt(self: *Self, I: type, endian: std.builtin.Endian) I {
+            comptime std.debug.assert(@bitSizeOf(I) % 8 == 0);
+            return std.mem.readInt(I, self.takeArray(@sizeOf(I)), endian);
+        }
+
+        pub fn takeIntSlice(self: *Self, I: type, len: usize) (if (is_const) []align(1) const I else []align(1) I) {
+            comptime std.debug.assert(@bitSizeOf(I) % 8 == 0);
+            return @ptrCast(self.takeSlice(@sizeOf(I) * len));
         }
     };
 }
