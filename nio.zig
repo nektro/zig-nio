@@ -223,7 +223,7 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
 
         pub fn writeStruct(self: Self, value: anytype) Error!void {
             // Only extern and packed structs have defined in-memory layout.
-            comptime std.debug.assert(@typeInfo(@TypeOf(value)).Struct.layout != .Auto);
+            comptime std.debug.assert(@typeInfo(@TypeOf(value)).@"struct".layout != .auto);
             return writeAll(self, std.mem.asBytes(&value));
         }
 
