@@ -54,11 +54,7 @@ const extras = @import("extras");
 /// A user type may be a `struct`, `vector`, `union` or `enum` type.
 ///
 /// To print literal curly braces, escape them by writing them twice, e.g. `{{` or `}}`.
-pub fn format(
-    writer: anytype,
-    comptime fmt: []const u8,
-    args: anytype,
-) !void {
+pub fn format(writer: anytype, comptime fmt: []const u8, args: anytype) !void {
     const ArgsType = @TypeOf(args);
     const args_type_info = @typeInfo(ArgsType);
     if (args_type_info != .@"struct") {
@@ -134,16 +130,14 @@ pub fn format(
         const arg_pos = comptime switch (placeholder.arg) {
             .none => null,
             .number => |pos| pos,
-            .named => |arg_name| std.meta.fieldIndex(ArgsType, arg_name) orelse
-                @compileError("no argument with name '" ++ arg_name ++ "'"),
+            .named => |arg_name| std.meta.fieldIndex(ArgsType, arg_name) orelse @compileError("no argument with name '" ++ arg_name ++ "'"),
         };
 
         const width = switch (placeholder.width) {
             .none => null,
             .number => |v| v,
             .named => |arg_name| blk: {
-                const arg_i = comptime std.meta.fieldIndex(ArgsType, arg_name) orelse
-                    @compileError("no argument with name '" ++ arg_name ++ "'");
+                const arg_i = comptime std.meta.fieldIndex(ArgsType, arg_name) orelse @compileError("no argument with name '" ++ arg_name ++ "'");
                 _ = comptime arg_state.nextArg(arg_i) orelse @compileError("too few arguments");
                 break :blk @field(args, arg_name);
             },
@@ -153,8 +147,7 @@ pub fn format(
             .none => null,
             .number => |v| v,
             .named => |arg_name| blk: {
-                const arg_i = comptime std.meta.fieldIndex(ArgsType, arg_name) orelse
-                    @compileError("no argument with name '" ++ arg_name ++ "'");
+                const arg_i = comptime std.meta.fieldIndex(ArgsType, arg_name) orelse @compileError("no argument with name '" ++ arg_name ++ "'");
                 _ = comptime arg_state.nextArg(arg_i) orelse @compileError("too few arguments");
                 break :blk @field(args, arg_name);
             },
@@ -165,7 +158,7 @@ pub fn format(
         try formatType(
             @field(args, fields_info[arg_to_print].name),
             placeholder.specifier_arg,
-            FormatOptions{
+            .{
                 .fill = placeholder.fill,
                 .alignment = placeholder.alignment,
                 .width = width,
@@ -244,8 +237,7 @@ pub const Placeholder = struct {
         };
 
         // Parse the positional argument number
-        const arg = comptime parser.specifier() catch |err|
-            @compileError(@errorName(err));
+        const arg = comptime parser.specifier() catch |err| @compileError(@errorName(err));
 
         // Parse the format specifier
         const specifier_arg = comptime parser.until(':');
@@ -291,8 +283,7 @@ pub const Placeholder = struct {
         }
 
         // Parse the width parameter
-        const width = comptime parser.specifier() catch |err|
-            @compileError(@errorName(err));
+        const width = comptime parser.specifier() catch |err| @compileError(@errorName(err));
 
         // Skip the dot, if present
         if (comptime parser.char()) |ch| {
@@ -302,8 +293,7 @@ pub const Placeholder = struct {
         }
 
         // Parse the precision parameter
-        const precision = comptime parser.specifier() catch |err|
-            @compileError(@errorName(err));
+        const precision = comptime parser.specifier() catch |err| @compileError(@errorName(err));
 
         if (comptime parser.char()) |ch| {
             @compileError("extraneous trailing character '" ++ std.unicode.utf8EncodeComptime(ch) ++ "'");
@@ -450,8 +440,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
             return formatBuf(if (value) "true" else "false", options, writer);
         },
         .optional => {
-            if (actual_fmt.len == 0 or actual_fmt[0] != '?')
-                @compileError("cannot format optional without a specifier (i.e. {?} or {any})");
+            if (actual_fmt.len == 0 or actual_fmt[0] != '?') @compileError("cannot format optional without a specifier (i.e. {?} or {any})");
             const remaining_fmt = comptime stripOptionalOrErrorUnionSpec(actual_fmt);
             if (value) |payload| {
                 return formatType(payload, remaining_fmt, options, writer, max_depth);
@@ -460,8 +449,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
             }
         },
         .error_union => {
-            if (actual_fmt.len == 0 or actual_fmt[0] != '!')
-                @compileError("cannot format error union without a specifier (i.e. {!} or {any})");
+            if (actual_fmt.len == 0 or actual_fmt[0] != '!') @compileError("cannot format error union without a specifier (i.e. {!} or {any})");
             const remaining_fmt = comptime stripOptionalOrErrorUnionSpec(actual_fmt);
             if (value) |payload| {
                 return formatType(payload, remaining_fmt, options, writer, max_depth);
@@ -571,8 +559,9 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                 invalidFmtError(fmt, value);
             },
             .slice => {
-                if (actual_fmt.len == 0)
+                if (actual_fmt.len == 0) {
                     @compileError("cannot format slice without a specifier (i.e. {s} or {any})");
+                }
                 if (max_depth == 0) {
                     return writer.writeAll("{ ... }");
                 }
@@ -590,8 +579,9 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
             },
         },
         .array => |info| {
-            if (actual_fmt.len == 0)
+            if (actual_fmt.len == 0) {
                 @compileError("cannot format array without a specifier (i.e. {s} or {any})");
+            }
             if (max_depth == 0) {
                 return writer.writeAll("{ ... }");
             }
@@ -700,13 +690,7 @@ fn formatAddress(value: anytype, options: FormatOptions, writer: anytype) @TypeO
     @compileError("cannot format non-pointer type " ++ @typeName(T) ++ " with * specifier");
 }
 
-pub fn formatInt(
-    value: anytype,
-    base: u8,
-    case: Case,
-    options: FormatOptions,
-    writer: anytype,
-) !void {
+pub fn formatInt(value: anytype, base: u8, case: Case, options: FormatOptions, writer: anytype) !void {
     std.debug.assert(base >= 2);
 
     const int_value = if (@TypeOf(value) == comptime_int) blk: {
@@ -768,12 +752,7 @@ pub fn formatInt(
     return formatBuf(buf[index..], options, writer);
 }
 
-fn formatValue(
-    value: anytype,
-    comptime fmt: []const u8,
-    options: FormatOptions,
-    writer: anytype,
-) !void {
+fn formatValue(value: anytype, comptime fmt: []const u8, options: FormatOptions, writer: anytype) !void {
     const T = @TypeOf(value);
     switch (@typeInfo(T)) {
         // .float, .comptime_float => return formatFloatValue(value, fmt, options, writer),
@@ -788,18 +767,13 @@ fn invalidFmtError(comptime fmt: []const u8, value: anytype) void {
     @compileError("invalid format string '" ++ fmt ++ "' for type '" ++ @typeName(@TypeOf(value)) ++ "'");
 }
 
-fn formatBuf(
-    buf: []const u8,
-    options: FormatOptions,
-    writer: anytype,
-) !void {
+fn formatBuf(buf: []const u8, options: FormatOptions, writer: anytype) !void {
     if (options.width) |min_width| {
         // In case of error assume the buffer content is ASCII-encoded
         const width = std.unicode.utf8CountCodepoints(buf) catch buf.len;
         const padding = if (width < min_width) min_width - width else 0;
 
-        if (padding == 0)
-            return writer.writeAll(buf);
+        if (padding == 0) return writer.writeAll(buf);
 
         var fill_buffer: [4]u8 = undefined;
         const fill_utf8 = if (std.unicode.utf8Encode(options.fill, &fill_buffer)) |len|
@@ -863,14 +837,14 @@ const digits2_alphabet = blk: {
 };
 
 /// Converts values in the range [0, 100) to a base 10 string.
-fn digits2(value: u8) [2]u8 {
+pub fn digits2(value: u8) [2]u8 {
     return digits2_alphabet[value * 2 ..][0..2].*;
 }
 
-fn digitToChar(digit: u8, case: Case) u8 {
+pub fn digitToChar(digit: u8, case: Case) u8 {
     return switch (digit) {
         0...9 => digit + '0',
-        10...35 => digit + ((if (case == .upper) @as(u8, 'A') else @as(u8, 'a')) - 10),
+        10...35 => digit + (if (case == .upper) @as(u8, 'A') else @as(u8, 'a')) - 10,
         else => unreachable,
     };
 }

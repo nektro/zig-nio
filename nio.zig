@@ -227,7 +227,7 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return writeAll(self, std.mem.asBytes(&value));
         }
 
-        pub fn writeIntPretty(self: Self, value: anytype, base: u8, case: std.fmt.Case) !void {
+        pub fn writeIntPretty(self: Self, value: anytype, base: u8, case: fmt.Case) !void {
             std.debug.assert(base >= 2);
 
             const int_value = if (@TypeOf(value) == comptime_int) @as(std.math.IntFittingRange(value, value), value) else value;
@@ -247,20 +247,20 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             if (base == 10) {
                 while (a >= 100) : (a = @divTrunc(a, 100)) {
                     index -= 2;
-                    buf[index..][0..2].* = std.fmt.digits2(@intCast(a % 100));
+                    buf[index..][0..2].* = fmt.digits2(@intCast(a % 100));
                 }
                 if (a < 10) {
                     index -= 1;
                     buf[index] = '0' + @as(u8, @intCast(a));
                 } else {
                     index -= 2;
-                    buf[index..][0..2].* = std.fmt.digits2(@intCast(a));
+                    buf[index..][0..2].* = fmt.digits2(@intCast(a));
                 }
             } else {
                 while (true) {
                     const digit = a % base;
                     index -= 1;
-                    buf[index] = std.fmt.digitToChar(@intCast(digit), case);
+                    buf[index] = fmt.digitToChar(@intCast(digit), case);
                     a /= base;
                     if (a == 0) break;
                 }
