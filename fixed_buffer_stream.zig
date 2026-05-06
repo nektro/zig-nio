@@ -86,6 +86,10 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
             };
         }
 
+        pub fn written(self: *Self) Buffer {
+            return self.buffer[0..self.pos];
+        }
+
         pub fn rest(self: *Self) Buffer {
             return self.buffer[self.pos..];
         }
