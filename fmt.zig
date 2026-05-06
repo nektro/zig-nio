@@ -3,6 +3,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const extras = @import("extras");
+const nio = @import("./nio.zig");
 
 /// Renders fmt string with args, calling `writer` with slices of bytes.
 /// If `writer` returns an error, the error is returned from `format` and
@@ -808,20 +809,20 @@ fn formatBuf(buf: []const u8, options: FormatOptions, writer: anytype) !void {
 
 /// Count the characters needed for format. Useful for preallocating memory
 fn count(comptime fmt: []const u8, args: anytype) u64 {
-    var counting_writer = std.io.countingWriter(std.io.null_writer);
-    format(counting_writer.writer().any(), fmt, args) catch unreachable;
+    var counting_writer: nio.CountingWriter(nio.NullWriter) = .init(.{});
+    format(&counting_writer, fmt, args) catch unreachable;
     return counting_writer.bytes_written;
 }
 
 /// Print a Formatter string into `buf`. Actually just a thin wrapper around `format` and `fixedBufferStream`.
 /// Returns a slice of the bytes printed to.
 fn bufPrint(buf: []u8, comptime fmt: []const u8, args: anytype) ![]u8 {
-    var fbs = std.io.fixedBufferStream(buf);
-    format(fbs.writer().any(), fmt, args) catch |err| switch (err) {
+    var fbs: nio.FixedBufferStream([]u8) = .init(buf);
+    format(&fbs, fmt, args) catch |err| switch (err) {
         error.NoSpaceLeft => return error.NoSpaceLeft,
         else => unreachable,
     };
-    return fbs.getWritten();
+    return fbs.written();
 }
 
 const digits2_alphabet = blk: {
@@ -920,11 +921,11 @@ fn formatFloatValue(value: anytype, comptime fmt: []const u8, options: FormatOpt
         };
         return formatBuf(s, options, writer);
     } else if (comptime std.mem.eql(u8, fmt, "x")) {
-        var buf_stream = std.io.fixedBufferStream(&buf);
-        std.fmt.formatFloatHexadecimal(value, options, buf_stream.writer()) catch |err| switch (err) {
+        var buf_stream: nio.FixedBufferStream([]u8) = .init(&buf);
+        std.fmt.formatFloatHexadecimal(value, options, &buf_stream) catch |err| switch (err) {
             error.NoSpaceLeft => unreachable,
         };
-        return formatBuf(buf_stream.getWritten(), options, writer);
+        return formatBuf(buf_stream.written(), options, writer);
     } else {
         invalidFmtError(fmt, value);
     }
