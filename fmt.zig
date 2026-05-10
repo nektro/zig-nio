@@ -816,7 +816,7 @@ fn count(comptime fmt: []const u8, args: anytype) u64 {
 
 /// Print a Formatter string into `buf`. Actually just a thin wrapper around `format` and `fixedBufferStream`.
 /// Returns a slice of the bytes printed to.
-fn bufPrint(buf: []u8, comptime fmt: []const u8, args: anytype) ![]u8 {
+pub fn bufPrint(buf: []u8, comptime fmt: []const u8, args: anytype) ![]u8 {
     var fbs: nio.FixedBufferStream([]u8) = .init(buf);
     format(&fbs, fmt, args) catch |err| switch (err) {
         error.NoSpaceLeft => return error.NoSpaceLeft,
