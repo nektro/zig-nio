@@ -67,7 +67,7 @@ pub fn format(writer: anytype, comptime fmt: []const u8, args: anytype) !void {
         @compileError("32 arguments max are supported per format call");
     }
 
-    @setEvalBranchQuota(2000000);
+    @setEvalBranchQuota(std.math.maxInt(u32));
     comptime var arg_state: ArgState = .{ .args_len = fields_info.len };
     comptime var i = 0;
     comptime var literal: []const u8 = "";
