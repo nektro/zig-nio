@@ -107,6 +107,24 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return (try readArray(self, 1))[0];
         }
 
+        /// Returned slice is not suffixed by needle but array_list will contain it.
+        pub fn readUntilDelimiterArrayList(self: Self, array_list: *std.ArrayList(u8), needle: u8, max_size: usize) ![]u8 {
+            const initial_len = array_list.items.len;
+            for (0..max_size) |i| {
+                try array_list.append(try readByte(self));
+                if (array_list.items[array_list.items.len - 1] == needle) return array_list.items[initial_len..][0..i];
+            }
+            return error.StreamTooLong;
+        }
+
+        /// Returned slice is suffixed by needle.
+        pub fn readUntilDelimiterAlloc(self: Self, allocator: std.mem.Allocator, needle: u8, max_size: usize) ![]u8 {
+            var list: std.ArrayList(u8) = .init(allocator);
+            errdefer list.deinit();
+            _ = try readUntilDelimiterArrayList(self, &list, needle, max_size);
+            return list.toOwnedSlice();
+        }
+
         pub fn readUntilDelimitersBuf(self: Self, buffer: []u8, needle: []const u8) ![]u8 {
             var real_len: usize = 0;
             for (0..buffer.len) |_| {
