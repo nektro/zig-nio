@@ -125,6 +125,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return list.toOwnedSlice();
         }
 
+        /// Returned slice is not suffixed by needle but buffer will contain it.
         pub fn readUntilDelimitersBuf(self: Self, buffer: []u8, needle: []const u8) ![]u8 {
             var real_len: usize = 0;
             for (0..buffer.len) |_| {
@@ -136,6 +137,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return error.StreamTooLong;
         }
 
+        /// Returned slice is not suffixed by needle but array_list will contain it.
         pub fn readUntilDelimitersArrayList(self: Self, array_list: *std.ArrayList(u8), needle: []const u8, max_size: usize) ![]u8 {
             const initial_len = array_list.items.len;
             for (0..max_size) |i| {
@@ -153,6 +155,20 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             array_list.items.len += len;
             if (len != size) return error.EndOfStream;
             return array_list.toOwnedSlice();
+        }
+
+        pub fn readInt(self: Self, I: type, endian: std.builtin.Endian) !I {
+            comptime std.debug.assert(@bitSizeOf(I) % 8 == 0);
+            const array = try readArray(self, @sizeOf(I));
+            return std.mem.readInt(I, &array, endian);
+        }
+
+        /// Returned slice is suffixed by needle.
+        pub fn readUntilDelimitersAlloc(self: Self, allocator: std.mem.Allocator, needle: []const u8, max_size: usize) ![]u8 {
+            var list: std.ArrayList(u8) = .init(allocator);
+            errdefer list.deinit();
+            _ = try readUntilDelimitersArrayList(self, &list, needle, max_size);
+            return list.toOwnedSlice();
         }
     };
 }
@@ -234,7 +250,7 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
         }
 
         pub fn writeInt(self: Self, comptime I: type, value: I, endian: std.builtin.Endian) Error!void {
-            var bytes: [@as(u16, @intCast((@as(u17, @typeInfo(I).Int.bits) + 7) / 8))]u8 = undefined;
+            var bytes: [@as(u16, @intCast((@as(u17, @typeInfo(I).int.bits) + 7) / 8))]u8 = undefined;
             std.mem.writeInt(std.math.ByteAlignedInt(I), &bytes, value, endian);
             return writeAll(self, &bytes);
         }
