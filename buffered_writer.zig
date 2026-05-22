@@ -25,8 +25,17 @@ pub fn BufferedWriter(comptime buffer_size: usize, comptime WriterType: type) ty
             };
         }
 
+        const W = nio.Writable(@This(), ._var);
+        pub const writeAll = W.writeAll;
+        pub const writevAll = W.writevAll;
+        pub const writeByteNTimes = W.writeByteNTimes;
+        pub const writeNTimes = W.writeNTimes;
+        pub const writeInt = W.writeInt;
+        pub const writeStruct = W.writeStruct;
+        pub const writeIntPretty = W.writeIntPretty;
+        pub const print = W.print;
+
         pub const WriteError = extras.Pointee(WriterType).WriteError;
-        pub usingnamespace nio.Writable(@This(), ._var);
         pub fn write(self: *Self, bytes: []const u8) WriteError!usize {
             if (self.end + bytes.len > self.buf.len) {
                 try self.flush();

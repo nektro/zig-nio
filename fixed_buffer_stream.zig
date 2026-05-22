@@ -27,8 +27,22 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
             };
         }
 
+        const R = nio.Readable(@This(), ._var);
+        pub const readAll = R.readAll;
+        pub const readAtLeast = R.readAtLeast;
+        pub const readNoEof = R.readNoEof;
+        pub const readAllAlloc = R.readAllAlloc;
+        pub const readArray = R.readArray;
+        pub const readByte = R.readByte;
+        pub const readUntilDelimiterArrayList = R.readUntilDelimiterArrayList;
+        pub const readUntilDelimiterAlloc = R.readUntilDelimiterAlloc;
+        pub const readUntilDelimitersBuf = R.readUntilDelimitersBuf;
+        pub const readUntilDelimitersArrayList = R.readUntilDelimitersArrayList;
+        pub const readAlloc = R.readAlloc;
+        pub const readInt = R.readInt;
+        pub const readUntilDelimitersAlloc = R.readUntilDelimitersAlloc;
+
         pub const ReadError = error{};
-        pub usingnamespace nio.Readable(@This(), ._var);
         pub fn read(self: *Self, dest: []u8) ReadError!usize {
             const size = @min(dest.len, self.buffer.len - self.pos);
             const end = self.pos + size;
@@ -50,8 +64,17 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
             };
         }
 
+        const W = nio.Writable(@This(), ._var);
+        pub const writeAll = W.writeAll;
+        pub const writevAll = W.writevAll;
+        pub const writeByteNTimes = W.writeByteNTimes;
+        pub const writeNTimes = W.writeNTimes;
+        pub const writeInt = W.writeInt;
+        pub const writeStruct = W.writeStruct;
+        pub const writeIntPretty = W.writeIntPretty;
+        pub const print = W.print;
+
         pub const WriteError = error{NoSpaceLeft};
-        pub usingnamespace nio.Writable(@This(), ._var);
         /// If the returned number of bytes written is less than requested, the buffer is full.
         /// Returns `error.NoSpaceLeft` when no bytes would be written.
         pub fn write(self: *Self, bytes: []const u8) WriteError!usize {

@@ -16,8 +16,17 @@ pub fn CountingWriter(WriterType: type) type {
             };
         }
 
+        const W = nio.Writable(@This(), ._var);
+        pub const writeAll = W.writeAll;
+        pub const writevAll = W.writevAll;
+        pub const writeByteNTimes = W.writeByteNTimes;
+        pub const writeNTimes = W.writeNTimes;
+        pub const writeInt = W.writeInt;
+        pub const writeStruct = W.writeStruct;
+        pub const writeIntPretty = W.writeIntPretty;
+        pub const print = W.print;
+
         pub const WriteError = extras.Pointee(WriterType).WriteError;
-        pub usingnamespace nio.Writable(@This(), ._var);
         pub fn write(self: *Self, bytes: []const u8) WriteError!usize {
             const len = try self.backing_writer.write(bytes);
             self.bytes_written += len;

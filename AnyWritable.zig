@@ -15,8 +15,17 @@ vtable: *const struct {
 },
 state: *allowzero anyopaque,
 
+const W = nio.Writable(@This(), ._const);
+pub const writeAll = W.writeAll;
+pub const writevAll = W.writevAll;
+pub const writeByteNTimes = W.writeByteNTimes;
+pub const writeNTimes = W.writeNTimes;
+pub const writeInt = W.writeInt;
+pub const writeStruct = W.writeStruct;
+pub const writeIntPretty = W.writeIntPretty;
+pub const print = W.print;
+
 pub const WriteError = anyerror;
-pub usingnamespace nio.Writable(@This(), ._const);
 pub fn write(r: AnyWritable, buffer: []const u8) !usize {
     return r.vtable.write(r.state, buffer);
 }
