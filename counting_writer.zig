@@ -1,6 +1,12 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const extras = @import("extras");
 const nio = @import("./nio.zig");
+
+const sys = switch (builtin.target.os.tag) {
+    .linux => @import("sys-linux"),
+    else => unreachable,
+};
 
 pub fn CountingWriter(WriterType: type) type {
     return struct {
@@ -29,6 +35,11 @@ pub fn CountingWriter(WriterType: type) type {
         pub const WriteError = extras.Pointee(WriterType).WriteError;
         pub fn write(self: *Self, bytes: []const u8) WriteError!usize {
             const len = try self.backing_writer.write(bytes);
+            self.bytes_written += len;
+            return len;
+        }
+        pub fn writev(self: *Self, iovec: []const sys.struct_iovec) WriteError!usize {
+            const len = try self.backing_writer.writev(iovec);
             self.bytes_written += len;
             return len;
         }
