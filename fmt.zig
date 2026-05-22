@@ -930,3 +930,15 @@ fn formatFloatValue(value: anytype, comptime fmt: []const u8, options: FormatOpt
         invalidFmtError(fmt, value);
     }
 }
+
+pub fn allocPrint(allocator: std.mem.Allocator, comptime fmt: []const u8, args: anytype) ![]u8 {
+    const size = std.math.cast(usize, count(fmt, args)) orelse return error.OutOfMemory;
+    const buf = try allocator.alloc(u8, size);
+    return bufPrint(buf, fmt, args) catch |err| switch (err) {
+        error.NoSpaceLeft => unreachable, // we just counted the size above
+    };
+}
+pub fn allocPrintZ(allocator: std.mem.Allocator, comptime fmt: []const u8, args: anytype) ![:0]u8 {
+    const result = try allocPrint(allocator, fmt ++ "\x00", args);
+    return result[0 .. result.len - 1 :0];
+}
