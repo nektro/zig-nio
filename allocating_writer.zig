@@ -51,11 +51,11 @@ pub const AllocatingWriter = struct {
         self.capacity = new_capacity;
     }
 
-    fn unusedSlice(self: *AllocatingWriter) []u8 {
+    pub fn unusedSlice(self: *AllocatingWriter) []u8 {
         return self.allocatedSlice()[self.items.len..];
     }
 
-    fn appendAssumeCapacity(self: *AllocatingWriter, bytes: []const u8) void {
+    pub fn appendAssumeCapacity(self: *AllocatingWriter, bytes: []const u8) void {
         @memcpy(self.unusedSlice()[0..bytes.len], bytes);
         self.items.len += bytes.len;
     }
