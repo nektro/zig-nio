@@ -55,6 +55,11 @@ pub const AllocatingWriter = struct {
         return self.allocatedSlice()[self.items.len..];
     }
 
+    fn appendAssumeCapacity(self: *AllocatingWriter, bytes: []const u8) void {
+        @memcpy(self.unusedSlice()[0..bytes.len], bytes);
+        self.items.len += bytes.len;
+    }
+
     const W = nio.Writable(@This(), ._var);
     pub const writeAll = W.writeAll;
     pub const writevAll = W.writevAll;
@@ -69,15 +74,14 @@ pub const AllocatingWriter = struct {
 
     pub fn write(self: *AllocatingWriter, bytes: []const u8) WriteError!usize {
         try self.ensureUnusedCapacity(bytes.len);
-        @memcpy(self.unusedSlice()[0..bytes.len], bytes);
-        self.items.len += bytes.len;
+        self.appendAssumeCapacity(bytes);
         return bytes.len;
     }
     pub fn writev(self: *AllocatingWriter, iovec: []const sys.struct_iovec) WriteError!usize {
         var len: usize = 0;
         for (iovec) |vec| len += vec.len;
         try self.ensureUnusedCapacity(len);
-        for (iovec) |vec| _ = self.write(vec.base[0..vec.len]) catch unreachable;
+        for (iovec) |vec| self.appendAssumeCapacity(vec.base[0..vec.len]);
         return len;
     }
 };
