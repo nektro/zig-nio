@@ -824,6 +824,10 @@ pub fn bufPrint(buf: []u8, comptime fmt: []const u8, args: anytype) ![]u8 {
     };
     return fbs.written();
 }
+pub fn bufPrintZ(buf: []u8, comptime fmt: []const u8, args: anytype) ![:0]u8 {
+    const result = try bufPrint(buf, fmt ++ "\x00", args);
+    return result[0 .. result.len - 1 :0];
+}
 
 const digits2_alphabet = blk: {
     var data: [200]u8 = @splat(0);
