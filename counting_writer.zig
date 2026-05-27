@@ -43,5 +43,18 @@ pub fn CountingWriter(WriterType: type) type {
             self.bytes_written += len;
             return len;
         }
+
+        pub fn anyWritable(self: *Self) nio.AnyWritable {
+            const S = struct {
+                fn write(s: *allowzero anyopaque, buffer: []const u8) anyerror!usize {
+                    const cw: *Self = @ptrCast(@alignCast(s));
+                    return cw.write(buffer);
+                }
+            };
+            return .{
+                .vtable = &.{ .write = S.write },
+                .state = @ptrCast(self),
+            };
+        }
     };
 }
