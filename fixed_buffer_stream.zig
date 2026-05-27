@@ -98,7 +98,7 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
 
         pub fn anyWritable(self: *Self) nio.AnyWritable {
             const S = struct {
-                fn write(s: *allowzero anyopaque, buffer: []u8) anyerror!usize {
+                fn write(s: *allowzero anyopaque, buffer: []const u8) anyerror!usize {
                     const fbs: *Self = @ptrCast(@alignCast(s));
                     return fbs.write(buffer);
                 }
