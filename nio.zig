@@ -125,6 +125,16 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return list.toOwnedSlice();
         }
 
+        pub fn readUntilDelimiterOrEofAlloc(self: Self, allocator: std.mem.Allocator, needle: u8, max_size: usize) !?[]u8 {
+            var list: std.ArrayList(u8) = .init(allocator);
+            defer list.deinit();
+            _ = readUntilDelimiterArrayList(self, &list, needle, max_size) catch |err| switch (err) {
+                error.EndOfStream => return null,
+                else => |e| return e,
+            };
+            return try list.toOwnedSlice();
+        }
+
         /// Returned slice is not suffixed by needle but buffer will contain it.
         pub fn readUntilDelimitersBuf(self: Self, buffer: []u8, needle: []const u8) ![]u8 {
             var real_len: usize = 0;
