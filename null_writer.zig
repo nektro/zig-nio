@@ -9,7 +9,7 @@ const sys = switch (builtin.target.os.tag) {
 };
 
 pub const NullWriter = struct {
-    const W = nio.Writable(@This(), ._var);
+    const W = nio.Writable(@This(), ._bare);
     pub const writeAll = W.writeAll;
     pub const writevAll = W.writevAll;
     pub const writeByteNTimes = W.writeByteNTimes;
