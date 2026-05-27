@@ -756,8 +756,7 @@ pub fn formatInt(value: anytype, base: u8, case: Case, options: FormatOptions, w
 fn formatValue(value: anytype, comptime fmt: []const u8, options: FormatOptions, writer: anytype) !void {
     const T = @TypeOf(value);
     switch (@typeInfo(T)) {
-        // .float, .comptime_float => return formatFloatValue(value, fmt, options, writer),
-        .float, .comptime_float => @compileError("TODO"),
+        .float, .comptime_float => return formatFloatValue(value, fmt, options, writer),
         .int, .comptime_int => return formatIntValue(value, fmt, options, writer),
         .bool => return formatBuf(if (value) "true" else "false", options, writer),
         else => comptime unreachable,
