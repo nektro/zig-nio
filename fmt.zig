@@ -424,6 +424,9 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
         return formatAddress(value, options, writer);
     }
 
+    if (comptime std.meta.hasMethod(T, "format")) {
+        @compileError("fix this: " ++ @typeName(T));
+    }
     if (std.meta.hasMethod(T, "nprint")) {
         return value.nprint(writer);
     }
