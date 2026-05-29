@@ -7,3 +7,4 @@ min_zig_version: 0.14.0
 dependencies:
   - src: git https://github.com/nektro/zig-sys-linux
   - src: git https://github.com/nektro/zig-extras
+  - src: git https://github.com/nektro/zig-sys-darwin

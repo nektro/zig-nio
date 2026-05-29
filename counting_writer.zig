@@ -5,6 +5,7 @@ const nio = @import("./nio.zig");
 
 const sys = switch (builtin.target.os.tag) {
     .linux => @import("sys-linux"),
+    .macos => @import("sys-darwin"),
     else => unreachable,
 };
 

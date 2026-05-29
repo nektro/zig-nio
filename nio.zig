@@ -7,6 +7,7 @@ pub const fmt = @import("./fmt.zig");
 
 const sys = switch (builtin.target.os.tag) {
     .linux => sys_linux,
+    .macos => @import("sys-darwin"),
     else => unreachable,
 };
 
