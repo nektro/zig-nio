@@ -1,5 +1,6 @@
 const std = @import("std");
 const nio = @import("./nio.zig");
+const extras = @import("extras");
 
 pub fn BufferedReader(comptime buffer_size: usize, comptime ReaderType: type) type {
     return struct {
@@ -39,7 +40,7 @@ pub fn BufferedReader(comptime buffer_size: usize, comptime ReaderType: type) ty
         pub const skipBytes = R.skipBytes;
         pub const skipUntilDelimiterOrEof = R.skipUntilDelimiterOrEof;
 
-        pub const ReadError = ReaderType.ReadError;
+        pub const ReadError = extras.Pointee(ReaderType).ReadError;
         pub fn read(self: *Self, dest: []u8) ReadError!usize {
             // First try reading from the already buffered data onto the destination.
             const current = self.buf[self.start..self.end];
