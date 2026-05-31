@@ -495,6 +495,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
             } else {
                 try format(writer, "@{x}", .{@intFromPtr(&value)});
             }
+            return;
         },
         .@"struct" => |info| {
             if (actual_fmt.len != 0) invalidFmtError(fmt, value);
@@ -530,6 +531,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                 try formatType(@field(value, f.name), "any", options, writer, max_depth - 1);
             }
             try writer.writeAll(" }");
+            return;
         },
         .pointer => |ptr_info| switch (ptr_info.size) {
             .one => switch (@typeInfo(ptr_info.child)) {
@@ -547,7 +549,6 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                 if (actual_fmt[0] == 's' and ptr_info.child == u8) {
                     return formatBuf(std.mem.span(value), options, writer);
                 }
-                invalidFmtError(fmt, value);
             },
             .slice => {
                 if (actual_fmt.len == 0) {
@@ -567,6 +568,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                     }
                 }
                 try writer.writeAll(" }");
+                return;
             },
         },
         .array => |info| {
@@ -587,6 +589,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                 }
             }
             try writer.writeAll(" }");
+            return;
         },
         .vector => |info| {
             if (max_depth == 0) {
@@ -601,6 +604,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                 }
             }
             try writer.writeAll(" }");
+            return;
         },
         .@"fn" => @compileError("unable to format function body type, use '*const " ++ @typeName(T) ++ "' for a function pointer type"),
         .type => {
