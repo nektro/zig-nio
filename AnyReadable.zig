@@ -24,6 +24,9 @@ pub const readAlloc = R.readAlloc;
 pub const readInt = R.readInt;
 pub const readUntilDelimitersAlloc = R.readUntilDelimitersAlloc;
 pub const readUntilDelimiterOrEof = R.readUntilDelimiterOrEof;
+pub const readExpected = R.readExpected;
+pub const skipBytes = R.skipBytes;
+pub const skipUntilDelimiterOrEof = R.skipUntilDelimiterOrEof;
 
 pub const Error = ReadError; // std compat
 pub const ReadError = anyerror;

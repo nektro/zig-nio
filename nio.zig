@@ -194,6 +194,36 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             }
             return error.StreamTooLong;
         }
+
+        pub fn readExpected(self: Self, expected: []const u8) !bool {
+            for (expected) |item| {
+                const actual = try readByte(self);
+                if (actual != item) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        pub fn skipBytes(self: Self, num_bytes: u64, comptime options: struct { buf_size: usize = 512 }) anyerror!void {
+            var buf: [options.buf_size]u8 = undefined;
+            var remaining = num_bytes;
+            while (remaining > 0) {
+                const amt = @min(remaining, options.buf_size);
+                try readNoEof(self, buf[0..amt]);
+                remaining -= amt;
+            }
+        }
+
+        pub fn skipUntilDelimiterOrEof(self: Self, delimiter: u8) anyerror!void {
+            while (true) {
+                const byte = self.readByte() catch |err| switch (err) {
+                    error.EndOfStream => return,
+                    else => |e| return e,
+                };
+                if (byte == delimiter) return;
+            }
+        }
     };
 }
 

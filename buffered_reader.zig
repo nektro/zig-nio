@@ -35,6 +35,9 @@ pub fn BufferedReader(comptime buffer_size: usize, comptime ReaderType: type) ty
         pub const readInt = R.readInt;
         pub const readUntilDelimitersAlloc = R.readUntilDelimitersAlloc;
         pub const readUntilDelimiterOrEof = R.readUntilDelimiterOrEof;
+        pub const readExpected = R.readExpected;
+        pub const skipBytes = R.skipBytes;
+        pub const skipUntilDelimiterOrEof = R.skipUntilDelimiterOrEof;
 
         pub const ReadError = ReaderType.ReadError;
         pub fn read(self: *Self, dest: []u8) ReadError!usize {
