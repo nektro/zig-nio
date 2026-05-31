@@ -181,6 +181,19 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             _ = try readUntilDelimitersArrayList(self, &list, needle, max_size);
             return list.toOwnedSlice();
         }
+
+        /// Returned slice is not suffixed by needle but buf will contain it.
+        pub fn readUntilDelimiterOrEof(self: Self, buf: []u8, needle: u8) !?[]u8 {
+            for (buf, 0..) |*c, i| {
+                const b = try readByte(self);
+                c.* = b;
+                if (b == needle) {
+                    if (i == 0) return null;
+                    return buf[0..i];
+                }
+            }
+            return error.StreamTooLong;
+        }
     };
 }
 
