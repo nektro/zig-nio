@@ -618,6 +618,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
         },
         else => @compileError("unable to format type '" ++ @typeName(T) ++ "'"),
     }
+    @compileError("unable to format type '" ++ @typeName(T) ++ "' with specifier '" ++ actual_fmt ++ "'");
 }
 
 pub inline fn comptimePrint(comptime fmt: []const u8, args: anytype) *const [count(fmt, args):0]u8 {
