@@ -467,27 +467,14 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
             return writer.writeAll(@errorName(value));
         },
         .@"enum" => |enumInfo| {
-            try writer.writeAll(@typeName(T));
-            if (enumInfo.is_exhaustive) {
-                if (actual_fmt.len != 0) invalidFmtError(fmt, value);
-                try writer.writeAll(".");
+            if (comptime std.mem.eql(u8, actual_fmt, "d")) {
+                try formatInt(@intFromEnum(value), 10, .lower, options, writer);
+                return;
+            }
+            if (comptime std.mem.eql(u8, actual_fmt, "s") and enumInfo.is_exhaustive) {
                 try writer.writeAll(@tagName(value));
                 return;
             }
-
-            // Use @tagName only if value is one of known fields
-            @setEvalBranchQuota(3 * enumInfo.fields.len);
-            inline for (enumInfo.fields) |enumField| {
-                if (@intFromEnum(value) == enumField.value) {
-                    try writer.writeAll(".");
-                    try writer.writeAll(@tagName(value));
-                    return;
-                }
-            }
-
-            try writer.writeAll("(");
-            try formatType(@intFromEnum(value), actual_fmt, options, writer, max_depth);
-            try writer.writeAll(")");
         },
         .@"union" => |info| {
             if (actual_fmt.len != 0) invalidFmtError(fmt, value);
