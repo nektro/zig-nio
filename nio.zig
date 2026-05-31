@@ -395,3 +395,5 @@ pub const NullWriter = @import("./null_writer.zig").NullWriter;
 pub const AllocatingWriter = @import("./allocating_writer.zig").AllocatingWriter;
 
 pub const CountingReader = @import("./counting_reader.zig").CountingReader;
+
+pub const LimitedReader = @import("./limited_reader.zig").LimitedReader;
