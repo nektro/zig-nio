@@ -58,11 +58,11 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
 
         /// Appends to the `std.ArrayList` contents by reading from the stream until end of stream is found.
         /// If the number of bytes appended would exceed `max_append_size`, `error.StreamTooLong` is returned and the `std.ArrayList` has exactly `max_append_size` bytes appended.
-        fn readAllArrayList(self: Self, array_list: *std.ArrayList(u8), max_append_size: usize) !void {
+        fn readAllArrayList(self: Self, array_list: *std.array_list.Managed(u8), max_append_size: usize) !void {
             return readAllArrayListAligned(self, null, array_list, max_append_size);
         }
 
-        fn readAllArrayListAligned(self: Self, comptime alignment: ?u29, array_list: *std.ArrayListAligned(u8, alignment), max_append_size: usize) !void {
+        fn readAllArrayListAligned(self: Self, comptime alignment: ?std.mem.Alignment, array_list: *std.array_list.AlignedManaged(u8, alignment), max_append_size: usize) !void {
             try array_list.ensureTotalCapacity(@min(max_append_size, 4096));
             const original_len = array_list.items.len;
             var start_index: usize = original_len;
@@ -92,7 +92,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
         /// Caller owns returned memory.
         /// If this function returns an error, the contents from the stream read so far are lost.
         pub fn readAllAlloc(self: Self, allocator: std.mem.Allocator, max_size: usize) ![]u8 {
-            var array_list = std.ArrayList(u8).init(allocator);
+            var array_list = std.array_list.Managed(u8).init(allocator);
             defer array_list.deinit();
             try readAllArrayList(self, &array_list, max_size);
             return try array_list.toOwnedSlice();
@@ -109,7 +109,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
         }
 
         /// Returned slice is not suffixed by needle but array_list will contain it.
-        pub fn readUntilDelimiterArrayList(self: Self, array_list: *std.ArrayList(u8), needle: u8, max_size: usize) ![]u8 {
+        pub fn readUntilDelimiterArrayList(self: Self, array_list: *std.array_list.Managed(u8), needle: u8, max_size: usize) ![]u8 {
             const initial_len = array_list.items.len;
             for (0..max_size) |i| {
                 try array_list.append(try readByte(self));
@@ -120,14 +120,14 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
 
         /// Returned slice is suffixed by needle.
         pub fn readUntilDelimiterAlloc(self: Self, allocator: std.mem.Allocator, needle: u8, max_size: usize) ![]u8 {
-            var list: std.ArrayList(u8) = .init(allocator);
+            var list: std.array_list.Managed(u8) = .init(allocator);
             errdefer list.deinit();
             _ = try readUntilDelimiterArrayList(self, &list, needle, max_size);
             return list.toOwnedSlice();
         }
 
         pub fn readUntilDelimiterOrEofAlloc(self: Self, allocator: std.mem.Allocator, needle: u8, max_size: usize) !?[]u8 {
-            var list: std.ArrayList(u8) = .init(allocator);
+            var list: std.array_list.Managed(u8) = .init(allocator);
             defer list.deinit();
             _ = readUntilDelimiterArrayList(self, &list, needle, max_size) catch |err| switch (err) {
                 error.EndOfStream => return null,
@@ -149,7 +149,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
         }
 
         /// Returned slice is not suffixed by needle but array_list will contain it.
-        pub fn readUntilDelimitersArrayList(self: Self, array_list: *std.ArrayList(u8), needle: []const u8, max_size: usize) ![]u8 {
+        pub fn readUntilDelimitersArrayList(self: Self, array_list: *std.array_list.Managed(u8), needle: []const u8, max_size: usize) ![]u8 {
             const initial_len = array_list.items.len;
             for (0..max_size) |i| {
                 try array_list.append(try readByte(self));
@@ -159,7 +159,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
         }
 
         pub fn readAlloc(self: Self, allocator: std.mem.Allocator, size: usize) ![]u8 {
-            var array_list = try std.ArrayList(u8).initCapacity(allocator, size);
+            var array_list = try std.array_list.Managed(u8).initCapacity(allocator, size);
             defer array_list.deinit();
             try array_list.ensureUnusedCapacity(size);
             const len = try readAll(self, array_list.allocatedSlice());
@@ -176,7 +176,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
 
         /// Returned slice is suffixed by needle.
         pub fn readUntilDelimitersAlloc(self: Self, allocator: std.mem.Allocator, needle: []const u8, max_size: usize) ![]u8 {
-            var list: std.ArrayList(u8) = .init(allocator);
+            var list: std.array_list.Managed(u8) = .init(allocator);
             errdefer list.deinit();
             _ = try readUntilDelimitersArrayList(self, &list, needle, max_size);
             return list.toOwnedSlice();

@@ -37,15 +37,15 @@ pub fn anyReadable(r: AnyReadable) AnyReadable {
     return r;
 }
 
-pub fn fromStd(reader_ptr: anytype) AnyReadable {
+pub fn fromStd(reader_ptr: *std.Io.Reader) AnyReadable {
     const S = struct {
         fn _read(s: *allowzero anyopaque, buffer: []u8) !usize {
             const r: @TypeOf(reader_ptr) = @ptrCast(@alignCast(s));
-            return r.read(buffer);
+            return r.readSliceShort(buffer);
         }
     };
     return .{
         .vtable = &.{ .read = &S._read },
-        .state = @constCast(@ptrCast(reader_ptr)),
+        .state = @ptrCast(@constCast(reader_ptr)),
     };
 }
