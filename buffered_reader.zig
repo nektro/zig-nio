@@ -35,6 +35,7 @@ pub fn BufferedReader(comptime buffer_size: usize, comptime ReaderType: type) ty
         pub const readAlloc = R.readAlloc;
         pub const readInt = R.readInt;
         pub const readUntilDelimitersAlloc = R.readUntilDelimitersAlloc;
+        pub const readUntilDelimiter = R.readUntilDelimiter;
         pub const readUntilDelimiterOrEof = R.readUntilDelimiterOrEof;
         pub const readExpected = R.readExpected;
         pub const skipBytes = R.skipBytes;
