@@ -906,24 +906,31 @@ fn formatUnicodeCodepoint(c: u21, options: FormatOptions, writer: anytype) !void
 }
 
 fn formatFloatValue(value: anytype, comptime fmt: []const u8, options: FormatOptions, writer: anytype) !void {
-    var buf: [std.fmt.format_float.bufferSize(.decimal, f64)]u8 = undefined;
+    const v = switch (@TypeOf(value)) {
+        comptime_float => @as(f128, value), // comptime_float internally is a f128; this preserves precision.
+        else => value,
+    };
+    const T = @TypeOf(v);
+    comptime std.debug.assert(@typeInfo(T) == .float);
+    const I = @Type(.{ .int = .{ .signedness = .unsigned, .bits = @bitSizeOf(T) } });
+    const DT = if (@bitSizeOf(T) <= 64) u64 else u128;
+    const tables = switch (DT) {
+        u64 => &std.fmt.float.Backend64_TablesFull,
+        u128 => &std.fmt.float.Backend128_Tables,
+        else => unreachable,
+    };
+    const has_explicit_leading_bit = std.math.floatMantissaBits(T) - std.math.floatFractionalBits(T) != 0;
+    const d = std.fmt.float.binaryToDecimal(DT, @as(I, @bitCast(v)), std.math.floatMantissaBits(T), std.math.floatExponentBits(T), has_explicit_leading_bit, tables);
+    var buf: [std.fmt.float.bufferSize(.decimal, T)]u8 = undefined;
 
     if (fmt.len == 0 or comptime std.mem.eql(u8, fmt, "e")) {
-        const s = std.fmt.formatFloat(&buf, value, .{ .mode = .scientific, .precision = options.precision }) catch |err| switch (err) {
-            error.BufferTooSmall => "(float)",
-        };
-        return formatBuf(s, options, writer);
+        try writer.writeAll(std.fmt.float.formatScientific(DT, &buf, d, options.precision) catch unreachable);
     } else if (comptime std.mem.eql(u8, fmt, "d")) {
-        const s = std.fmt.formatFloat(&buf, value, .{ .mode = .decimal, .precision = options.precision }) catch |err| switch (err) {
-            error.BufferTooSmall => "(float)",
-        };
-        return formatBuf(s, options, writer);
+        try writer.writeAll(std.fmt.float.formatDecimal(DT, &buf, d, options.precision) catch unreachable);
     } else if (comptime std.mem.eql(u8, fmt, "x")) {
-        var buf_stream: nio.FixedBufferStream([]u8) = .init(&buf);
-        std.fmt.formatFloatHexadecimal(value, options, &buf_stream) catch |err| switch (err) {
-            error.NoSpaceLeft => unreachable,
-        };
-        return formatBuf(buf_stream.written(), options, writer);
+        var w: std.Io.Writer = .fixed(&buf);
+        w.printFloatHex(v, .lower, options.precision) catch unreachable;
+        try writer.writeAll(buf[0..w.end]);
     } else {
         invalidFmtError(fmt, value);
     }
