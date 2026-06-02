@@ -41,8 +41,13 @@ pub fn anyReadable(r: AnyReadable) AnyReadable {
 pub fn fromStd(reader_ptr: *std.Io.Reader) AnyReadable {
     const S = struct {
         fn _read(s: *allowzero anyopaque, buffer: []u8) !usize {
-            const r: @TypeOf(reader_ptr) = @ptrCast(@alignCast(s));
-            return r.readSliceShort(buffer);
+            const r: *std.Io.Reader = @ptrCast(@alignCast(s));
+            var w: std.Io.Writer = .fixed(buffer);
+            return r.stream(&w, .limited(buffer.len)) catch |err| switch (err) {
+                error.ReadFailed => |e| e,
+                error.WriteFailed => unreachable,
+                error.EndOfStream => 0,
+            };
         }
     };
     return .{
