@@ -912,7 +912,7 @@ fn formatFloatValue(value: anytype, comptime fmt: []const u8, options: FormatOpt
     };
     const T = @TypeOf(v);
     comptime std.debug.assert(@typeInfo(T) == .float);
-    const I = @Type(.{ .int = .{ .signedness = .unsigned, .bits = @bitSizeOf(T) } });
+    const I = @Int(.unsigned, @bitSizeOf(T));
     const DT = if (@bitSizeOf(T) <= 64) u64 else u128;
     const tables = switch (DT) {
         u64 => &std.fmt.float.Backend64_TablesFull,
