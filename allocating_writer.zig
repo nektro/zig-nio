@@ -61,6 +61,30 @@ pub const AllocatingWriter = struct {
         self.items.len += bytes.len;
     }
 
+    pub fn orderedRemove(self: *AllocatingWriter, index: usize) u8 {
+        const old_item = self.items[index];
+        std.mem.copyForwards(u8, self.items[index .. self.items.len - 1], self.items[index + 1 .. self.items.len]);
+        self.items.len -= 1;
+        return old_item;
+    }
+
+    pub fn last(self: *AllocatingWriter) u8 {
+        return self.items[self.items.len - 1];
+    }
+
+    pub fn insertAt(self: *AllocatingWriter, index: usize, bytes: []const u8) !void {
+        try self.ensureUnusedCapacity(bytes.len);
+        self.items.len += bytes.len;
+        std.mem.copyBackwards(u8, self.items[index + bytes.len .. self.items.len], self.items[index .. self.items.len - bytes.len]);
+        @memcpy(self.items[index..][0..bytes.len], bytes);
+    }
+
+    pub fn clearAndFree(self: *AllocatingWriter) void {
+        self.allocator.free(self.allocatedSlice());
+        self.items.len = 0;
+        self.capacity = 0;
+    }
+
     const W = nio.Writable(@This(), ._var);
     pub const writeAll = W.writeAll;
     pub const writevAll = W.writevAll;
