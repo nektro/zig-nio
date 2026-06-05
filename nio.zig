@@ -406,3 +406,17 @@ pub const AllocatingWriter = @import("./allocating_writer.zig").AllocatingWriter
 pub const CountingReader = @import("./counting_reader.zig").CountingReader;
 
 pub const LimitedReader = @import("./limited_reader.zig").LimitedReader;
+
+pub const crypto_random: std.Random = .{
+    .ptr = undefined,
+    .fillFn = getrandomFill,
+};
+fn getrandomFill(_: *anyopaque, buffer: []u8) void {
+    _ = sys.getrandom(buffer, 0) catch unreachable;
+}
+
+pub fn randomBytes(comptime len: usize) [len]u8 {
+    var bytes: [len]u8 = undefined;
+    crypto_random.bytes(&bytes);
+    return bytes;
+}
