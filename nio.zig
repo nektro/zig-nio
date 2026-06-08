@@ -444,6 +444,8 @@ pub const CountingReader = @import("./counting_reader.zig").CountingReader;
 
 pub const LimitedReader = @import("./limited_reader.zig").LimitedReader;
 
+pub const HashWriter = @import("./hash_writer.zig").HashWriter;
+
 pub const crypto_random: std.Random = .{
     .ptr = undefined,
     .fillFn = getrandomFill,
