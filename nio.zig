@@ -261,6 +261,15 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
                 if (byte == delimiter) return;
             }
         }
+
+        pub fn pipeTo(self: Self, writer: anytype) !void {
+            var buf: [4096]u8 = undefined;
+            while (true) {
+                const n = try self.read(&buf);
+                if (n == 0) break;
+                try writer.writeAll(buf[0..n]);
+            }
+        }
     };
 }
 

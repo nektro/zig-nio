@@ -44,6 +44,7 @@ pub fn CountingReader(ReaderType: type) type {
         pub const readType = R.readType;
         pub const skipBytes = R.skipBytes;
         pub const skipUntilDelimiterOrEof = R.skipUntilDelimiterOrEof;
+        pub const pipeTo = R.pipeTo;
 
         pub const ReadError = extras.Pointee(ReaderType).ReadError;
 

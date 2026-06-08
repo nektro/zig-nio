@@ -41,6 +41,7 @@ pub fn BufferedReader(comptime buffer_size: usize, comptime ReaderType: type) ty
         pub const readType = R.readType;
         pub const skipBytes = R.skipBytes;
         pub const skipUntilDelimiterOrEof = R.skipUntilDelimiterOrEof;
+        pub const pipeTo = R.pipeTo;
 
         pub const ReadError = extras.Pointee(ReaderType).ReadError;
         pub fn read(self: *Self, dest: []u8) ReadError!usize {

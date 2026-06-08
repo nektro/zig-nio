@@ -49,6 +49,7 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
         pub const readType = R.readType;
         pub const skipBytes = R.skipBytes;
         pub const skipUntilDelimiterOrEof = R.skipUntilDelimiterOrEof;
+        pub const pipeTo = R.pipeTo;
 
         pub const ReadError = error{};
         pub fn read(self: *Self, dest: []u8) ReadError!usize {
