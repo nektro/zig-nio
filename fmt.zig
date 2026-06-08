@@ -424,7 +424,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
         return formatAddress(value, options, writer);
     }
 
-    if (comptime std.meta.hasMethod(T, "format")) {
+    if (comptime std.meta.hasMethod(T, "format") and @typeInfo(@TypeOf(T.format)).@"fn".params[1].type.? != *std.Io.Writer) {
         @compileError("fix this: " ++ @typeName(T));
     }
     if (std.meta.hasMethod(T, "nprint")) {
