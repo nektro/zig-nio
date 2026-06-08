@@ -242,7 +242,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             };
         }
 
-        pub fn skipBytes(self: Self, num_bytes: u64, comptime options: struct { buf_size: usize = 512 }) anyerror!void {
+        pub fn skipBytes(self: Self, num_bytes: u64, comptime options: struct { buf_size: usize = 512 }) !void {
             var buf: [options.buf_size]u8 = undefined;
             var remaining = num_bytes;
             while (remaining > 0) {
@@ -252,7 +252,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             }
         }
 
-        pub fn skipUntilDelimiterOrEof(self: Self, delimiter: u8) anyerror!void {
+        pub fn skipUntilDelimiterOrEof(self: Self, delimiter: u8) !void {
             while (true) {
                 const byte = self.readByte() catch |err| switch (err) {
                     error.EndOfStream => return,
