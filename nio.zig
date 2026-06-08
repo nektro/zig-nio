@@ -214,6 +214,34 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return true;
         }
 
+        pub fn readType(self: Self, comptime C: type, endian: std.builtin.Endian) !C {
+            if (C == u8) return readByte(self); // single bytes dont have an endianness
+            return switch (@typeInfo(C)) {
+                .@"struct" => |t| {
+                    switch (t.layout) {
+                        .auto, .@"extern" => {
+                            var s: C = undefined;
+                            inline for (std.meta.fields(C)) |field| {
+                                @field(s, field.name) = try readType(self, field.type, endian);
+                            }
+                            return s;
+                        },
+                        .@"packed" => return @bitCast(try readType(self, t.backing_integer.?, endian)),
+                    }
+                },
+                .array => |t| {
+                    var s: C = undefined;
+                    for (0..t.len) |i| {
+                        s[i] = try readType(self, t.child, endian);
+                    }
+                    return s;
+                },
+                .int => try self.readInt(C, endian),
+                .@"enum" => |t| @enumFromInt(try readType(self, t.tag_type, endian)),
+                else => unreachable,
+            };
+        }
+
         pub fn skipBytes(self: Self, num_bytes: u64, comptime options: struct { buf_size: usize = 512 }) anyerror!void {
             var buf: [options.buf_size]u8 = undefined;
             var remaining = num_bytes;
@@ -419,4 +447,33 @@ pub fn randomBytes(comptime len: usize) [len]u8 {
     var bytes: [len]u8 = undefined;
     crypto_random.bytes(&bytes);
     return bytes;
+}
+
+pub fn indexBufferT(bytes: [*]const u8, comptime T: type, endian: std.builtin.Endian, idx: usize, max_len: usize) T {
+    std.debug.assert(idx < max_len);
+    var fbs: FixedBufferStream([]const u8) = .init((bytes + (idx * @sizeOf(T)))[0..@sizeOf(T)]);
+    return fbs.readType(T, endian) catch |err| switch (err) {
+        error.EndOfStream => unreachable, // assert above has been violated
+    };
+}
+
+pub fn BufIndexer(comptime T: type, comptime endian: std.builtin.Endian) type {
+    return struct {
+        bytes: [*]const u8,
+        max_len: usize,
+
+        const Self = @This();
+
+        pub fn init(bytes: [*]const u8, max_len: usize) Self {
+            return .{
+                .bytes = bytes,
+                .max_len = max_len,
+            };
+        }
+
+        /// asserts 'idx' to be in bounds
+        pub fn at(self: *const Self, idx: usize) T {
+            return indexBufferT(self.bytes, T, endian, idx, self.max_len);
+        }
+    };
 }

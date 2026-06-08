@@ -46,6 +46,7 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
         pub const readUntilDelimiter = R.readUntilDelimiter;
         pub const readUntilDelimiterOrEof = R.readUntilDelimiterOrEof;
         pub const readExpected = R.readExpected;
+        pub const readType = R.readType;
         pub const skipBytes = R.skipBytes;
         pub const skipUntilDelimiterOrEof = R.skipUntilDelimiterOrEof;
 
