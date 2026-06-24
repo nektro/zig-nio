@@ -937,11 +937,11 @@ fn formatFloatValue(value: anytype, comptime fmt: []const u8, options: FormatOpt
 }
 
 pub fn allocPrint(allocator: std.mem.Allocator, comptime fmt: []const u8, args: anytype) ![]u8 {
-    const size = std.math.cast(usize, count(fmt, args)) orelse return error.OutOfMemory;
-    const buf = try allocator.alloc(u8, size);
-    return bufPrint(buf, fmt, args) catch |err| switch (err) {
-        error.NoSpaceLeft => unreachable, // we just counted the size above
-    };
+    var aw: nio.AllocatingWriter = .init(allocator);
+    errdefer aw.deinit();
+    try aw.ensureUnusedCapacity(fmt.len);
+    try format(&aw, fmt, args);
+    return aw.toOwnedSlice();
 }
 pub fn allocPrintZ(allocator: std.mem.Allocator, comptime fmt: []const u8, args: anytype) ![:0]u8 {
     const result = try allocPrint(allocator, fmt ++ "\x00", args);
