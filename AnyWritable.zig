@@ -42,7 +42,7 @@ pub fn anyWritable(r: AnyWritable) AnyWritable {
     return r;
 }
 
-pub fn fromStd(writer_ptr: anytype) AnyWritable {
+pub fn fromStd(writer_ptr: *std.Io.Writer) AnyWritable {
     const S = struct {
         fn _write(s: *allowzero anyopaque, buffer: []const u8) !usize {
             const r: @TypeOf(writer_ptr) = @ptrCast(@alignCast(s));
@@ -51,6 +51,6 @@ pub fn fromStd(writer_ptr: anytype) AnyWritable {
     };
     return .{
         .vtable = &.{ .write = &S._write },
-        .state = @constCast(@ptrCast(writer_ptr)),
+        .state = @ptrCast(@constCast(writer_ptr)),
     };
 }
