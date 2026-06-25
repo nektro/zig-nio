@@ -54,3 +54,43 @@ pub fn fromStd(writer_ptr: *std.Io.Writer) AnyWritable {
         .state = @ptrCast(@constCast(writer_ptr)),
     };
 }
+
+pub fn toStd(r: AnyWritable, buf: []u8) StdWriter {
+    const S = struct {
+        fn drain(sw: *std.Io.Writer, data: []const []const u8, splat: usize) error{WriteFailed}!usize {
+            const w: *StdWriter = @alignCast(@fieldParentPtr("sw", sw));
+            while (true) {
+                const rem = w.sw.buffered();
+                const n = w.aw.write(rem) catch return error.WriteFailed;
+                const l = w.sw.consume(n);
+                if (l == 0) break;
+            }
+            var n: usize = 0;
+            const slice = data[0 .. data.len - 1];
+            w.aw.writevAll(slice) catch return error.WriteFailed;
+            for (slice) |x| n += x.len;
+            const pattern = data[slice.len];
+            w.aw.writeNTimes(pattern, splat) catch return error.WriteFailed;
+            n += pattern.len * splat;
+            return n;
+        }
+        fn flush(sw: *std.Io.Writer) error{WriteFailed}!void {
+            const w: *StdWriter = @alignCast(@fieldParentPtr("sw", sw));
+            return w.aw.writeAll(w.sw.buffered()) catch return error.WriteFailed;
+        }
+    };
+    return .{
+        .aw = r,
+        .sw = .{
+            .vtable = &.{
+                .drain = S.drain,
+                .flush = S.flush,
+            },
+            .buffer = buf,
+        },
+    };
+}
+const StdWriter = struct {
+    aw: AnyWritable,
+    sw: std.Io.Writer,
+};
