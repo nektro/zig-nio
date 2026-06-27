@@ -85,6 +85,16 @@ pub const AllocatingWriter = struct {
         self.capacity = 0;
     }
 
+    pub fn replaceRangeAssumeCapacity(self: *AllocatingWriter, start: usize, len: usize, new_items: []const u8) void {
+        std.debug.assert(self.capacity - self.items.len >= new_items.len -| len);
+        const tail = self.items[start + len ..];
+        const vacated = self.items[self.items.len - (len -| new_items.len) ..];
+        self.items.len = self.items.len - len + new_items.len;
+        @memmove(self.items[start + new_items.len ..], tail);
+        @memcpy(self.items[start..][0..new_items.len], new_items);
+        @memset(vacated, undefined);
+    }
+
     const W = nio.Writable(@This(), ._var);
     pub const writeAll = W.writeAll;
     pub const writevAll = W.writevAll;
