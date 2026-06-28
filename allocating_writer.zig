@@ -119,4 +119,17 @@ pub const AllocatingWriter = struct {
         for (iovec) |vec| self.appendAssumeCapacity(vec.base[0..vec.len]);
         return len;
     }
+
+    pub fn anyWritable(self: *AllocatingWriter) nio.AnyWritable {
+        const S = struct {
+            fn write(s: *allowzero anyopaque, buffer: []const u8) anyerror!usize {
+                const bw: *AllocatingWriter = @ptrCast(@alignCast(s));
+                return bw.write(buffer);
+            }
+        };
+        return .{
+            .vtable = &.{ .write = S.write },
+            .state = @ptrCast(self),
+        };
+    }
 };
