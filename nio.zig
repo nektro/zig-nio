@@ -446,6 +446,8 @@ pub const LimitedReader = @import("./limited_reader.zig").LimitedReader;
 
 pub const HashWriter = @import("./hash_writer.zig").HashWriter;
 
+pub const SkipReader = @import("./skip_reader.zig").SkipReader;
+
 pub const crypto_random: std.Random = .{
     .ptr = undefined,
     .fillFn = getrandomFill,
