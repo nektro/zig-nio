@@ -448,6 +448,8 @@ pub const HashWriter = @import("./hash_writer.zig").HashWriter;
 
 pub const SkipReader = @import("./skip_reader.zig").SkipReader;
 
+pub const Base64Reader = @import("./base64_reader.zig").Base64Reader;
+
 pub const crypto_random: std.Random = .{
     .ptr = undefined,
     .fillFn = getrandomFill,
