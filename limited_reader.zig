@@ -23,6 +23,10 @@ pub fn LimitedReader(ReaderType: type) type {
             };
         }
 
+        pub fn from(backing_reader: anytype, bytes_left: u64) LimitedReader(@TypeOf(backing_reader)) {
+            return .init(backing_reader, bytes_left);
+        }
+
         const R = nio.Readable(@This(), ._var);
         pub const readAll = R.readAll;
         pub const readAtLeast = R.readAtLeast;
