@@ -145,5 +145,10 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
             comptime std.debug.assert(@bitSizeOf(I) % 8 == 0);
             return @ptrCast(self.takeSlice(@sizeOf(I) * len));
         }
+
+        pub fn readSlice(self: *Self, count: usize) !Buffer {
+            if (self.pos + count > self.buffer.len) return error.EndOfStream;
+            return self.takeSlice(count);
+        }
     };
 }
