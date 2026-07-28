@@ -329,8 +329,7 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
         }
 
         pub fn writeByteNTimes(self: Self, byte: u8, n: usize) Error!void {
-            var bytes: [1024]u8 = undefined;
-            @memset(bytes[0..], byte);
+            var bytes: [4096]u8 = @splat(byte);
             var remaining: usize = n;
             while (remaining > 0) {
                 const to_write = @min(remaining, bytes.len);
