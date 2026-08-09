@@ -427,7 +427,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
     if (comptime std.meta.hasMethod(T, "format") and @typeInfo(@TypeOf(T.format)).@"fn".params[1].type.? != *std.Io.Writer) {
         @compileError("fix this: " ++ @typeName(T));
     }
-    if (std.meta.hasMethod(T, "nprint")) {
+    if (comptime std.meta.hasMethod(T, "nprint")) {
         return value.nprint(writer);
     }
 
@@ -495,42 +495,6 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
             } else {
                 try format(writer, "@{x}", .{@intFromPtr(&value)});
             }
-            return;
-        },
-        .@"struct" => |info| {
-            if (actual_fmt.len != 0) invalidFmtError(fmt, value);
-            if (info.is_tuple) {
-                // Skip the type and field names when formatting tuples.
-                if (max_depth == 0) {
-                    return writer.writeAll("{ ... }");
-                }
-                try writer.writeAll("{");
-                inline for (info.fields, 0..) |f, i| {
-                    if (i == 0) {
-                        try writer.writeAll(" ");
-                    } else {
-                        try writer.writeAll(", ");
-                    }
-                    try formatType(@field(value, f.name), "any", options, writer, max_depth - 1);
-                }
-                return writer.writeAll(" }");
-            }
-            try writer.writeAll(@typeName(T));
-            if (max_depth == 0) {
-                return writer.writeAll("{ ... }");
-            }
-            try writer.writeAll("{");
-            inline for (info.fields, 0..) |f, i| {
-                if (i == 0) {
-                    try writer.writeAll(" .");
-                } else {
-                    try writer.writeAll(", .");
-                }
-                try writer.writeAll(f.name);
-                try writer.writeAll(" = ");
-                try formatType(@field(value, f.name), "any", options, writer, max_depth - 1);
-            }
-            try writer.writeAll(" }");
             return;
         },
         .pointer => |ptr_info| switch (ptr_info.size) {
