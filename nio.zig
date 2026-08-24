@@ -8,6 +8,9 @@ pub const fmt = @import("./fmt.zig");
 const sys = switch (builtin.target.os.tag) {
     .linux => sys_linux,
     .macos => @import("sys-darwin"),
+    .freebsd => @import("sys-freebsd"),
+    .netbsd => @import("sys-netbsd"),
+    .openbsd => @import("sys-openbsd"),
     else => unreachable,
 };
 
@@ -454,7 +457,11 @@ pub const crypto_random: std.Random = .{
     .fillFn = getrandomFill,
 };
 fn getrandomFill(_: *anyopaque, buffer: []u8) void {
-    _ = sys.getrandom(buffer, 0) catch unreachable;
+    if (builtin.target.abi.isMusl()) {
+        _ = sys.getrandom(buffer, 0) catch unreachable;
+        return;
+    }
+    sys.libc.arc4random_buf(buffer.ptr, buffer.len);
 }
 
 pub fn randomBytes(comptime len: usize) [len]u8 {
