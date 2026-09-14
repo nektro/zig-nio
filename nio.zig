@@ -452,6 +452,8 @@ pub const SkipReader = @import("./skip_reader.zig").SkipReader;
 
 pub const Base64Reader = @import("./base64_reader.zig").Base64Reader;
 
+pub const Base64Writer = @import("./base64_writer.zig").Base64Writer;
+
 pub const crypto_random: std.Random = .{
     .ptr = undefined,
     .fillFn = getrandomFill,
