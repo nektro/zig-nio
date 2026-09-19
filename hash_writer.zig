@@ -3,6 +3,7 @@
 const std = @import("std");
 const nio = @import("./nio.zig");
 const builtin = @import("builtin");
+const extras = @import("extras");
 
 const sys = switch (builtin.target.os.tag) {
     .linux => @import("sys-linux"),
@@ -21,6 +22,10 @@ pub fn HashWriter(comptime Hash: type) type {
             return .{
                 .hasher = hasher,
             };
+        }
+
+        pub fn from(hasher: anytype) HashWriter(extras.Pointee(@TypeOf(hasher))) {
+            return .init(hasher);
         }
 
         const W = nio.Writable(@This(), ._const);
