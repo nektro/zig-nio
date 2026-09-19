@@ -102,7 +102,7 @@ pub fn Base64Writer(comptime WriterType: type) type {
             };
         }
 
-        pub fn flush(self: *Self) !void {
+        pub fn flush(self: *Self, pad: enum { no_pad, yes_pad }) !void {
             switch (self.buffer.len) {
                 else => unreachable,
                 3 => unreachable,
@@ -115,8 +115,8 @@ pub fn Base64Writer(comptime WriterType: type) type {
                         self.alphabet[p.n0],
                         self.alphabet[p.n1],
                         self.alphabet[p.n2],
-                        '=',
                     });
+                    if (pad == .yes_pad) try self.writeAll("=");
                     self.buffer.len = 0;
                 },
                 1 => {
@@ -127,9 +127,8 @@ pub fn Base64Writer(comptime WriterType: type) type {
                     try self.backing_writer.writeAll(&.{
                         self.alphabet[p.n0],
                         self.alphabet[p.n1],
-                        '=',
-                        '=',
                     });
+                    if (pad == .yes_pad) try self.writeAll("==");
                     self.buffer.len = 0;
                 },
                 0 => {},
