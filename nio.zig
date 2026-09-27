@@ -450,6 +450,8 @@ pub const HashWriter = @import("./hash_writer.zig").HashWriter;
 
 pub const SkipReader = @import("./skip_reader.zig").SkipReader;
 
+pub const BitReader = @import("./bit_reader.zig").BitReader;
+
 pub const Base64Reader = @import("./base64_reader.zig").Base64Reader;
 
 pub const Base64Writer = @import("./base64_writer.zig").Base64Writer;
@@ -514,3 +516,12 @@ pub const Base64Alphabet = union(enum) {
         };
     }
 };
+
+pub fn base64_decodeAllAlloc(input: []const u8, allocator: std.mem.Allocator, alphabet: Base64Alphabet) ![]u8 {
+    var w: AllocatingWriter = .init(allocator);
+    errdefer w.deinit();
+    var b: FixedBufferStream([]const u8) = .init(input);
+    var r = Base64Reader(void).from(&b, alphabet);
+    try r.pipeTo(&w);
+    return w.toOwnedSlice();
+}
