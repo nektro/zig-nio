@@ -2,8 +2,6 @@ const std = @import("std");
 const builtin = @import("builtin");
 const extras = @import("extras");
 const nio = @import("./nio.zig");
-const standard_alphabet_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const url_safe_alphabet_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".*;
 
 pub fn Base64Reader(comptime ReaderType: type) type {
     return struct {
@@ -15,17 +13,17 @@ pub fn Base64Reader(comptime ReaderType: type) type {
         const Self = @This();
         const bit_max = std.math.log2(64); // 6
 
-        pub fn init(source_reader: ReaderType) Self {
+        pub fn init(source_reader: ReaderType, alphabet: nio.Base64Alphabet) Self {
             return .{
                 .source_reader = source_reader,
-                .alphabet = standard_alphabet_chars,
+                .alphabet = alphabet.chars(),
                 .bits = .empty,
                 .jdx = bit_max,
             };
         }
 
-        pub fn from(source_reader: anytype) Base64Reader(@TypeOf(source_reader)) {
-            return .init(source_reader);
+        pub fn from(source_reader: anytype, alphabet: nio.Base64Alphabet) Base64Reader(@TypeOf(source_reader)) {
+            return .init(source_reader, alphabet);
         }
 
         const R = nio.Readable(@This(), ._var);

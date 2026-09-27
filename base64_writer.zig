@@ -19,25 +19,15 @@ pub fn Base64Writer(comptime WriterType: type) type {
 
         const Self = @This();
 
-        const Alphabet = union(enum) {
-            standard,
-            url_safe,
-            custom: *const [64]u8,
-        };
-
-        pub fn init(backing_writer: WriterType, alphabet: Alphabet) Self {
+        pub fn init(backing_writer: WriterType, alphabet: nio.Base64Alphabet) Self {
             return .{
                 .backing_writer = backing_writer,
-                .alphabet = switch (alphabet) {
-                    .standard => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-                    .url_safe => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
-                    .custom => |a| a,
-                },
+                .alphabet = alphabet.chars(),
                 .buffer = .empty,
             };
         }
 
-        pub fn from(backing_writer: anytype, alphabet: Alphabet) Base64Writer(@TypeOf(backing_writer)) {
+        pub fn from(backing_writer: anytype, alphabet: nio.Base64Alphabet) Base64Writer(@TypeOf(backing_writer)) {
             return .init(backing_writer, alphabet);
         }
 

@@ -500,3 +500,17 @@ pub fn BufIndexer(comptime T: type, comptime endian: std.builtin.Endian) type {
         }
     };
 }
+
+pub const Base64Alphabet = union(enum) {
+    standard,
+    url_safe,
+    custom: *const [64]u8,
+
+    pub fn chars(alphabet: Base64Alphabet) *const [64]u8 {
+        return switch (alphabet) {
+            .standard => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+            .url_safe => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+            .custom => |a| a,
+        };
+    }
+};
