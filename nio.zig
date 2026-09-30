@@ -450,8 +450,6 @@ pub const HashWriter = @import("./hash_writer.zig").HashWriter;
 
 pub const SkipReader = @import("./skip_reader.zig").SkipReader;
 
-pub const BitReader = @import("./bit_reader.zig").BitReader;
-
 pub const Base64Reader = @import("./base64_reader.zig").Base64Reader;
 
 pub const Base64Writer = @import("./base64_writer.zig").Base64Writer;
