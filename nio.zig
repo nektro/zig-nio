@@ -523,3 +523,29 @@ pub fn base64_decodeAllAlloc(input: []const u8, allocator: std.mem.Allocator, al
     try r.pipeTo(&w);
     return w.toOwnedSlice();
 }
+
+pub const base64 = struct {
+    pub const JsonStringifyAlt = struct {
+        alphabet: Base64Alphabet,
+        data: []const u8,
+
+        pub fn init(alphabet: Base64Alphabet, data: []const u8) @This() {
+            return .{
+                .alphabet = alphabet,
+                .data = data,
+            };
+        }
+
+        pub fn stringifyJson(self: @This(), writer: anytype, options: std.json.Stringify.Options, json: type) !void {
+            _ = options;
+            try writer.writeAll("\"");
+            {
+                var jw = json.PartialWriter(void).from(writer);
+                var bw = Base64Writer(void).from(&jw, self.alphabet);
+                try bw.writeAll(self.data);
+                try bw.flush(.no_pad);
+            }
+            try writer.writeAll("\"");
+        }
+    };
+};
