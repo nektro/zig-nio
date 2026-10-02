@@ -464,7 +464,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
         .error_set => {
             if (actual_fmt.len != 0) invalidFmtError(fmt, value);
             try writer.writeAll("error.");
-            return writer.writeAll(@errorName(value));
+            try writer.writeAll(@errorName(value));
         },
         .@"enum" => |enumInfo| {
             if (comptime std.mem.eql(u8, actual_fmt, "d")) {
@@ -499,8 +499,11 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
         },
         .pointer => |ptr_info| switch (ptr_info.size) {
             .one => switch (@typeInfo(ptr_info.child)) {
-                .array, .@"enum", .@"union", .@"struct" => {
+                .@"enum", .@"union", .@"struct" => {
                     return formatType(value.*, actual_fmt, options, writer, max_depth);
+                },
+                .array => |info| {
+                    return formatType(@as([]const info.child, value[0..]), actual_fmt, options, writer, max_depth);
                 },
                 else => return format(writer, "{s}@{x}", .{ @typeName(ptr_info.child), @intFromPtr(value) }),
             },
@@ -513,6 +516,9 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                 if (actual_fmt[0] == 's' and ptr_info.child == u8) {
                     return formatBuf(std.mem.span(value), options, writer);
                 }
+                if (actual_fmt[0] != 's') {
+                    @compileError(actual_fmt ++ " " ++ @typeName(ptr_info.child));
+                }
             },
             .slice => {
                 if (actual_fmt.len == 0) {
@@ -523,6 +529,9 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                 }
                 if (actual_fmt[0] == 's' and ptr_info.child == u8) {
                     return formatBuf(value, options, writer);
+                }
+                if (actual_fmt[0] != 's') {
+                    @compileError(actual_fmt ++ " " ++ @typeName(ptr_info.child));
                 }
                 try writer.writeAll("{ ");
                 for (value, 0..) |elem, i| {
@@ -536,14 +545,17 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
             },
         },
         .array => |info| {
+            if (@sizeOf(T) > 16) {
+                @compileError(@typeName(T) ++ " is too big");
+            }
+            if (info.child == u8) {
+                @compileError("pass [_]u8 as slice instead");
+            }
             if (actual_fmt.len == 0) {
                 @compileError("cannot format array without a specifier (i.e. {s} or {any})");
             }
             if (max_depth == 0) {
                 return writer.writeAll("{ ... }");
-            }
-            if (actual_fmt[0] == 's' and info.child == u8) {
-                return formatBuf(&value, options, writer);
             }
             try writer.writeAll("{ ");
             for (value, 0..) |elem, i| {
