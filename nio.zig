@@ -171,6 +171,15 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return array_list.toOwnedSlice();
         }
 
+        pub fn readAllocNoEof(self: Self, allocator: std.mem.Allocator, size: usize) ![]u8 {
+            var array_list = try std.array_list.Managed(u8).initCapacity(allocator, size);
+            defer array_list.deinit();
+            try array_list.ensureUnusedCapacity(size);
+            const len = try readAll(self, array_list.allocatedSlice());
+            array_list.items.len += len;
+            return array_list.toOwnedSlice();
+        }
+
         pub fn readInt(self: Self, I: type, endian: std.builtin.Endian) !I {
             comptime std.debug.assert(@bitSizeOf(I) % 8 == 0);
             const array = try readArray(self, @sizeOf(I));

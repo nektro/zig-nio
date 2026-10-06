@@ -44,6 +44,7 @@ pub fn FixedBufferStream(comptime Buffer: type) type {
         pub const readUntilDelimitersBuf = R.readUntilDelimitersBuf;
         pub const readUntilDelimitersArrayList = R.readUntilDelimitersArrayList;
         pub const readAlloc = R.readAlloc;
+        pub const readAllocNoEof = R.readAllocNoEof;
         pub const readInt = R.readInt;
         pub const readUntilDelimitersAlloc = R.readUntilDelimitersAlloc;
         pub const readUntilDelimiter = R.readUntilDelimiter;
