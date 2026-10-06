@@ -28,6 +28,10 @@ pub fn BufferedWriter(comptime buffer_size: usize, comptime WriterType: type) ty
             };
         }
 
+        pub fn from(unbuffered_writer: anytype) BufferedWriter(buffer_size, @TypeOf(unbuffered_writer)) {
+            return .init(unbuffered_writer);
+        }
+
         const W = nio.Writable(@This(), ._var);
         pub const writeAll = W.writeAll;
         pub const writevAll = W.writevAll;
