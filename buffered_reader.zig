@@ -20,6 +20,10 @@ pub fn BufferedReader(comptime buffer_size: usize, comptime ReaderType: type) ty
             };
         }
 
+        pub fn from(unbuffered_reader: anytype) BufferedReader(buffer_size, @TypeOf(unbuffered_reader)) {
+            return .init(unbuffered_reader);
+        }
+
         const R = nio.Readable(@This(), ._var);
         pub const readAll = R.readAll;
         pub const readAtLeast = R.readAtLeast;
