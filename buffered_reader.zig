@@ -85,5 +85,9 @@ pub fn BufferedReader(comptime buffer_size: usize, comptime ReaderType: type) ty
                 .state = @ptrCast(self),
             };
         }
+
+        pub fn content(self: *Self) []u8 {
+            return self.buf[self.start..self.end];
+        }
     };
 }
