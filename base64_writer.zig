@@ -106,7 +106,7 @@ pub fn Base64Writer(comptime WriterType: type) type {
                         self.alphabet[p.n1],
                         self.alphabet[p.n2],
                     });
-                    if (pad == .yes_pad) try self.writeAll("=");
+                    if (pad == .yes_pad) try self.backing_writer.writeAll("=");
                     self.buffer.len = 0;
                 },
                 1 => {
@@ -118,7 +118,7 @@ pub fn Base64Writer(comptime WriterType: type) type {
                         self.alphabet[p.n0],
                         self.alphabet[p.n1],
                     });
-                    if (pad == .yes_pad) try self.writeAll("==");
+                    if (pad == .yes_pad) try self.backing_writer.writeAll("==");
                     self.buffer.len = 0;
                 },
                 0 => {},
