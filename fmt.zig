@@ -411,7 +411,7 @@ fn cacheString(str: anytype) []const u8 {
     return &str;
 }
 
-fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, writer: anytype, max_depth: usize) extras.Pointee(@TypeOf(writer)).WriteError!void {
+fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, writer: anytype, max_depth: usize) !void {
     const T = @TypeOf(value);
     const actual_fmt = comptime if (std.mem.eql(u8, fmt, "any"))
         defaultSpec(T)

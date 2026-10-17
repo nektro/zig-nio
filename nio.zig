@@ -429,7 +429,7 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
             return writeAll(self, buf[index..]);
         }
 
-        pub fn print(self: Self, comptime format: []const u8, args: anytype) Error!void {
+        pub fn print(self: Self, comptime format: []const u8, args: anytype) !void {
             return fmt.format(self, format, args);
         }
     };
