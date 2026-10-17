@@ -62,13 +62,13 @@ pub fn format(writer: anytype, comptime fmt: []const u8, args: anytype) !void {
         @compileError("expected tuple or struct argument, found " ++ @typeName(ArgsType));
     }
 
-    const fields_info = args_type_info.@"struct".fields;
-    if (fields_info.len > max_format_args) {
+    const field_names = args_type_info.@"struct".field_names;
+    if (field_names.len > max_format_args) {
         @compileError("32 arguments max are supported per format call");
     }
 
     @setEvalBranchQuota(std.math.maxInt(u32));
-    comptime var arg_state: ArgState = .{ .args_len = fields_info.len };
+    comptime var arg_state: ArgState = .{ .args_len = field_names.len };
     comptime var i = 0;
     comptime var literal: []const u8 = "";
     inline while (true) {
@@ -157,7 +157,7 @@ pub fn format(writer: anytype, comptime fmt: []const u8, args: anytype) !void {
         const arg_to_print = comptime arg_state.nextArg(arg_pos) orelse @compileError("too few arguments");
 
         try formatType(
-            @field(args, fields_info[arg_to_print].name),
+            @field(args, field_names[arg_to_print]),
             placeholder.specifier_arg,
             .{
                 .fill = placeholder.fill,
@@ -471,7 +471,7 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
         },
         .@"enum" => |enumInfo| {
             if (comptime std.mem.eql(u8, actual_fmt, "d")) {
-                try formatInt(@intFromEnum(value), 10, .lower, options, writer);
+                try formatInt(@backingInt(value), 10, .lower, options, writer);
                 return;
             }
             if (comptime std.mem.eql(u8, actual_fmt, "s") and enumInfo.is_exhaustive) {
@@ -678,7 +678,7 @@ pub fn formatInt(value: anytype, base: u8, case: Case, options: FormatOptions, w
     // The type must have the same size as `base` or be wider in order for the
     // division to work
     const min_int_bits = comptime @max(value_info.bits, 8);
-    const MinInt = std.meta.Int(.unsigned, min_int_bits);
+    const MinInt = @Int(.unsigned, min_int_bits);
 
     const abs_value = @abs(int_value);
     // The worst case in terms of space needed is base 2, plus 1 for the sign
