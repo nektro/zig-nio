@@ -249,7 +249,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
                     return s;
                 },
                 .int => try self.readInt(C, endian),
-                .@"enum" => |t| @enumFromInt(try readType(self, t.tag_type, endian)),
+                .@"enum" => |t| @fromBackingInt(@intCast(try readType(self, t.tag_type, endian))),
                 else => unreachable,
             };
         }
@@ -380,7 +380,7 @@ pub fn Writable(T: type, this_kind: enum { _var, _const, _bare }) type {
 
             // The type must have the same size as `base` or be wider in order for the division to work
             const min_int_bits = comptime @max(value_info.bits, 8);
-            const MinInt = std.meta.Int(.unsigned, min_int_bits);
+            const MinInt = @Int(.unsigned, min_int_bits);
 
             const abs_value = @abs(int_value);
             // The worst case in terms of space needed is base 2, plus 1 for the sign
