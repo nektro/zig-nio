@@ -4,15 +4,7 @@ const std = @import("std");
 const nio = @import("./nio.zig");
 const builtin = @import("builtin");
 const extras = @import("extras");
-
-const sys = switch (builtin.target.os.tag) {
-    .linux => @import("sys-linux"),
-    .macos => @import("sys-darwin"),
-    .freebsd => @import("sys-freebsd"),
-    .netbsd => @import("sys-netbsd"),
-    .openbsd => @import("sys-openbsd"),
-    else => unreachable,
-};
+const sys = @import("sys").impl;
 
 pub fn HashWriter(comptime Hash: type) type {
     return struct {

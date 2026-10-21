@@ -1,15 +1,8 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const extras = @import("extras");
+const sys = @import("sys").impl;
 const nio = @import("./nio.zig");
-
-const sys = switch (builtin.target.os.tag) {
-    .linux => @import("sys-linux"),
-    .freebsd => @import("sys-freebsd"),
-    .netbsd => @import("sys-netbsd"),
-    .openbsd => @import("sys-openbsd"),
-    else => unreachable,
-};
 
 pub fn Base64Writer(comptime WriterType: type) type {
     return struct {
