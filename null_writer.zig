@@ -2,12 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const extras = @import("extras");
 const nio = @import("./nio.zig");
-
-const sys = switch (builtin.target.os.tag) {
-    .linux => @import("sys-linux"),
-    .macos => @import("sys-darwin"),
-    else => unreachable,
-};
+const sys = @import("sys").impl;
 
 pub const NullWriter = struct {
     const W = nio.Writable(@This(), ._bare);

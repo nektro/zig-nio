@@ -2,15 +2,7 @@ const std = @import("std");
 const nio = @import("./nio.zig");
 const builtin = @import("builtin");
 const extras = @import("extras");
-const sys_linux = @import("sys-linux");
-
-const sys = switch (builtin.target.os.tag) {
-    .linux => sys_linux,
-    .freebsd => @import("sys-freebsd"),
-    .netbsd => @import("sys-netbsd"),
-    .openbsd => @import("sys-openbsd"),
-    else => unreachable,
-};
+const sys = @import("sys").impl;
 
 pub fn BufferedWriter(comptime buffer_size: usize, comptime WriterType: type) type {
     return struct {

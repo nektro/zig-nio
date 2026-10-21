@@ -4,11 +4,7 @@ main: nio.zig
 license: MPL-2.0
 description: Nektro's IO, an alternative to std.io
 dependencies:
-  - src: git https://github.com/nektro/zig-sys-linux
+  - src: git https://git.nektro.net/lib/zig/sys/
   - src: git https://github.com/nektro/zig-extras
-  - src: git https://github.com/nektro/zig-sys-darwin
-  - src: git https://github.com/nektro/zig-sys-freebsd
-  - src: git https://github.com/nektro/zig-sys-netbsd
-  - src: git https://github.com/nektro/zig-sys-openbsd
 root_dependencies:
   - src: git https://github.com/nektro/zig-expect

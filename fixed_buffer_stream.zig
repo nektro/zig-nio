@@ -1,16 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const extras = @import("extras");
-const sys_linux = @import("sys-linux");
-
-const sys = switch (builtin.target.os.tag) {
-    .linux => sys_linux,
-    .macos => @import("sys-darwin"),
-    .freebsd => @import("sys-freebsd"),
-    .netbsd => @import("sys-netbsd"),
-    .openbsd => @import("sys-openbsd"),
-    else => unreachable,
-};
+const sys = @import("sys").impl;
 
 const nio = @import("./nio.zig");
 
