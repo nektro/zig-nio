@@ -265,12 +265,15 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
             }
         }
 
-        pub fn pipeTo(self: Self, writer: anytype) !void {
+        pub fn pipeTo(self: Self, writer: anytype, max_size: ?u64) !void {
             var buf: [4096]u8 = undefined;
+            var max_size_left = max_size orelse std.math.maxInt(u64);
             while (true) {
-                const n = try self.read(&buf);
+                if (max_size_left == 0) break;
+                const n = try self.read(buf[0..@min(buf.len, max_size_left)]);
                 if (n == 0) break;
                 try writer.writeAll(buf[0..n]);
+                max_size_left -= n;
             }
         }
     };
@@ -520,7 +523,7 @@ pub fn base64_decodeAllAlloc(input: []const u8, allocator: std.mem.Allocator, al
     errdefer w.deinit();
     var b: FixedBufferStream([]const u8) = .init(input);
     var r = Base64Reader(void).from(&b, alphabet);
-    try r.pipeTo(&w);
+    try r.pipeTo(&w, null);
     return w.toOwnedSlice();
 }
 
