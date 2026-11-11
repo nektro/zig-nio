@@ -173,7 +173,7 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
 
         pub fn readInt(self: Self, I: type, endian: std.builtin.Endian) !I {
             comptime std.debug.assert(@bitSizeOf(I) % 8 == 0);
-            const array = try readArray(self, @sizeOf(I));
+            const array = try readArray(self, @bitSizeOf(I) / 8);
             return std.mem.readInt(I, &array, endian);
         }
 
