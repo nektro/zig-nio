@@ -224,8 +224,8 @@ pub fn Readable(T: type, this_kind: enum { _var, _const, _bare }) type {
                     switch (t.layout) {
                         .auto, .@"extern" => {
                             var s: C = undefined;
-                            inline for (std.meta.fields(C)) |field| {
-                                @field(s, field.name) = try readType(self, field.type, endian);
+                            inline for (t.field_names, t.field_types) |name, ty| {
+                                @field(s, name) = try readType(self, ty, endian);
                             }
                             return s;
                         },
