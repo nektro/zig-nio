@@ -506,6 +506,9 @@ fn formatType(value: anytype, comptime fmt: []const u8, options: FormatOptions, 
                     return formatType(value.*, actual_fmt, options, writer, max_depth);
                 },
                 .array => |info| {
+                    if (actual_fmt[0] == 'x' and info.child == u8) {
+                        return formatBuf(&extras.to_hex(value.*), options, writer);
+                    }
                     return formatType(@as([]const info.child, value[0..]), actual_fmt, options, writer, max_depth);
                 },
                 else => return format(writer, "{s}@{x}", .{ @typeName(ptr_info.child), @intFromPtr(value) }),
