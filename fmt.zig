@@ -718,12 +718,6 @@ pub fn formatInt(value: anytype, base: u8, case: Case, options: FormatOptions, w
             // Negative integer
             index -= 1;
             buf[index] = '-';
-        } else if (options.width == null or options.width.? == 0) {
-            // Positive integer, omit the plus sign
-        } else {
-            // Positive integer
-            index -= 1;
-            buf[index] = '+';
         }
     }
 
