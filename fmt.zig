@@ -900,13 +900,13 @@ fn formatFloatValue(value: anytype, comptime fmt: []const u8, options: FormatOpt
     var buf: [std.fmt.float.bufferSize(.decimal, T)]u8 = undefined;
 
     if (fmt.len == 0 or comptime std.mem.eql(u8, fmt, "e")) {
-        try writer.writeAll(std.fmt.float.formatScientific(DT, &buf, d, options.precision) catch unreachable);
+        try formatBuf(std.fmt.float.formatScientific(DT, &buf, d, options.precision) catch unreachable, options, writer);
     } else if (comptime std.mem.eql(u8, fmt, "d")) {
-        try writer.writeAll(std.fmt.float.formatDecimal(DT, &buf, d, options.precision) catch unreachable);
+        try formatBuf(std.fmt.float.formatDecimal(DT, &buf, d, options.precision) catch unreachable, options, writer);
     } else if (comptime std.mem.eql(u8, fmt, "x")) {
         var w: std.Io.Writer = .fixed(&buf);
         w.printFloatHex(v, .lower, options.precision) catch unreachable;
-        try writer.writeAll(buf[0..w.end]);
+        try formatBuf(buf[0..w.end], options, writer);
     } else {
         invalidFmtError(fmt, value);
     }
