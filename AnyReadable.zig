@@ -58,3 +58,35 @@ pub fn fromStd(reader_ptr: *std.Io.Reader) AnyReadable {
         .state = @ptrCast(@constCast(reader_ptr)),
     };
 }
+
+pub fn toStd(ar: AnyReadable, buf: []u8) StdReader {
+    const S = struct {
+        fn stream(sr: *std.Io.Reader, sw: *std.Io.Writer, limit: std.Io.Limit) !usize {
+            const r: *StdReader = @alignCast(@fieldParentPtr("sr", sr));
+            const dest = limit.slice(try sw.writableSliceGreedy(1));
+            const n = r.ar.read(dest) catch |err| {
+                r.err = err;
+                return error.ReadFailed;
+            };
+            sw.advance(n);
+            return n;
+        }
+    };
+    return .{
+        .ar = ar,
+        .sr = .{
+            .vtable = &.{
+                .stream = &S.stream,
+            },
+            .buffer = buf,
+            .seek = 0,
+            .end = 0,
+        },
+        .err = null,
+    };
+}
+pub const StdReader = struct {
+    ar: AnyReadable,
+    sr: std.Io.Reader,
+    err: ?ReadError,
+};
