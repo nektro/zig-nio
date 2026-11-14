@@ -35,6 +35,14 @@ pub const AllocatingWriter = struct {
         return new_slice;
     }
 
+    pub fn toArrayList(self: *const AllocatingWriter) std.ArrayList(u8) {
+        return .{
+            .items = self.items,
+            .capacity = self.capacity,
+            .pointer_stability = .{},
+        };
+    }
+
     pub fn ensureUnusedCapacity(self: *AllocatingWriter, capacity: usize) !void {
         if (self.capacity - self.items.len >= capacity) return;
         const len = self.items.len;
