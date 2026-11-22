@@ -778,7 +778,7 @@ fn formatBuf(buf: []const u8, options: FormatOptions, writer: anytype) !void {
 }
 
 /// Count the characters needed for format. Useful for preallocating memory
-fn count(comptime fmt: []const u8, args: anytype) u64 {
+pub fn count(comptime fmt: []const u8, args: anytype) u64 {
     var counting_writer: nio.CountingWriter(nio.NullWriter) = .init(.{});
     format(&counting_writer, fmt, args) catch unreachable;
     return counting_writer.bytes_written;
