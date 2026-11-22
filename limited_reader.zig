@@ -1,13 +1,8 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const extras = @import("extras");
+const sys = @import("sys").impl;
 const nio = @import("./nio.zig");
-
-const sys = switch (builtin.target.os.tag) {
-    .linux => @import("sys-linux"),
-    .macos => @import("sys-darwin"),
-    else => unreachable,
-};
 
 pub fn LimitedReader(ReaderType: type) type {
     return struct {
