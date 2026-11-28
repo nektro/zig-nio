@@ -31,7 +31,7 @@ pub const AllocatingWriter = struct {
             return self.items;
         }
         const new_slice = try self.allocator.dupe(u8, self.items);
-        self.allocator.free(self.allocatedSlice());
+        self.clearAndFree();
         return new_slice;
     }
 
